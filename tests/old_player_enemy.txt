@@ -1,0 +1,177 @@
+class Player:
+    def __init__(self, x, y, width, height):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.player_walk_down = [player_down1,
+                                 player_down2, player_down3, player_down4]
+        self.player_walk_up = [player_up1,
+                               player_up2, player_up3, player_up4]
+        self.player_index = 0
+        self.image = self.player_walk_down[self.player_index]
+        self.image = pygame.transform.scale(
+            self.image, (self.width, self.height))
+        self.rect = self.image.get_rect(topleft=(self.x, self.y))
+        self.last_collistion = 2
+        self.collide_point = pygame.Rect(
+            self.rect.centerx, self.rect.centery - 20, 2, 40)
+
+    def draw(self):
+        screen.blit(self.image, self.rect)
+        self.collide_point = pygame.Rect(
+            self.rect.centerx, self.rect.centery + 0, 1, 30)
+
+        # Hitbox
+        if HITBOX:
+            pygame.draw.rect(screen, RED,  self.collide_point)
+
+    def move(self, direction):
+        if direction == 'left':
+            self.rect.y -= 1
+            self.rect.x -= 2
+            self.image = pygame.transform.flip(
+                self.player_walk_up[int(self.player_index)], True, False)
+
+        if direction == 'right':
+            self.rect.y += 1
+            self.rect.x += 2
+            self.image = self.player_walk_down[int(self.player_index)]
+
+        if direction == 'up':
+            self.rect.y -= 1
+            self.rect.x += 2
+            self.image = self.player_walk_up[int(self.player_index)]
+
+        if direction == 'down':
+            self.rect.y += 1
+            self.rect.x -= 2
+            self.image = pygame.transform.flip(
+                self.player_walk_down[int(self.player_index)], True, False)
+
+        self.image = pygame.transform.scale(
+            self.image, (self.width, self.height))
+
+    def animation(self):
+        self.player_index += 0.2
+        if self.player_index >= len(self.player_walk_down):
+            self.player_index = 0
+
+    def collision(self, block):
+        if self.collide_point.colliderect(block.collide_point):
+            if block.floor == 0 and self.last_collistion == 1:
+                self.last_collistion = block.floor
+                self.rect.y += 16
+                self.rect.x -= 1
+
+            if block.floor == 1 and self.last_collistion == 0:
+                self.last_collistion = block.floor
+                self.rect.y -= 16
+                self.rect.x += 1
+
+            if block.floor == 1 and self.last_collistion == 2:
+                self.last_collistion = block.floor
+                self.rect.y += 16
+                self.rect.x -= 1
+
+            if block.floor == 2 and self.last_collistion == 1:
+                self.last_collistion = block.floor
+                self.rect.y -= 16
+                self.rect.x += 1
+
+            if block.floor == 2 and self.last_collistion == 3:
+                self.last_collistion = block.floor
+                self.rect.y += 16
+                self.rect.x -= 1
+
+            if block.floor == 3 and self.last_collistion == 2:
+                self.last_collistion = block.floor
+                self.rect.y -= 16
+                self.rect.x += 1
+
+
+class Enemy:
+    def __init__(self, x, y, width, height):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.image = ghost
+        self.image = pygame.transform.scale(
+            self.image, (self.width, self.height))
+        self.rect = self.image.get_rect(topleft=(self.x, self.y))
+
+        self.last_collistion = 2
+        self.collide_point = pygame.Rect(
+            self.rect.centerx, self.rect.centery - 20, 2, 40)
+
+        self.timer = 0
+
+        self.directionx = (player.rect.centerx - self.rect.centerx)
+        self.directiony = (player.rect.centery - self.rect.centery)
+
+    def draw(self):
+        self.collide_point = pygame.Rect(
+            self.rect.centerx, self.rect.centery + 0, 1, 30)
+        screen.blit(self.image, self.rect)
+
+    def move(self, player):
+
+        if self.timer <= 16:
+            if self.directionx >= 0:
+                speedx = 2
+
+            elif self.directionx < 0:
+                speedx = -2
+
+            if self.directiony >= 0:
+                speedy = 1
+
+            elif self.directiony < 0:
+                speedy = -1
+
+            self.rect.y += speedy
+            self.rect.x += speedx
+
+        elif self.timer > 25:
+            self.timer = 0
+            self.directionx = (player.rect.centerx - self.rect.centerx)
+            self.directiony = (player.rect.centery - self.rect.centery)
+
+        self.timer += 1
+
+        if HITBOX:
+            pygame.draw.line(screen, GREEN, [player.rect.centerx, player.rect.centery], [
+                self.rect.centerx, self.rect.centery], 5)
+
+    def collision(self, block):
+        if self.collide_point.colliderect(block.collide_point):
+            if block.floor == 0 and self.last_collistion == 1:
+                self.last_collistion = block.floor
+                self.rect.y += 16
+                self.rect.x -= 1
+
+            if block.floor == 1 and self.last_collistion == 0:
+                self.last_collistion = block.floor
+                self.rect.y -= 16
+                self.rect.x += 1
+
+            if block.floor == 1 and self.last_collistion == 2:
+                self.last_collistion = block.floor
+                self.rect.y += 16
+                self.rect.x -= 1
+
+            if block.floor == 2 and self.last_collistion == 1:
+                self.last_collistion = block.floor
+                self.rect.y -= 16
+                self.rect.x += 1
+
+            if block.floor == 2 and self.last_collistion == 3:
+                self.last_collistion = block.floor
+                self.rect.y += 16
+                self.rect.x -= 1
+
+            if block.floor == 3 and self.last_collistion == 2:
+                self.last_collistion = block.floor
+                self.rect.y -= 16
+                self.rect.x += 1
