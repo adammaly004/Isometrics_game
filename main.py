@@ -63,6 +63,8 @@ shop = pygame.image.load('img/house2.png').convert_alpha()
 # Load fonts
 font_type = 'Pixeltype.ttf'
 
+# Vytvoreni bloku
+
 
 class Block:
     def __init__(self, x, y, width, height, image, floor, action=False):
