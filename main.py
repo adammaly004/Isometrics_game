@@ -1,5 +1,6 @@
 import pygame
 from sys import exit
+import time
 from random import randint, choice
 
 from constants import *
@@ -58,6 +59,8 @@ coin_5 = pygame.image.load('img/coins/coin_5.png').convert_alpha()
 coin_6 = pygame.image.load('img/coins/coin_6.png').convert_alpha()
 
 shop = pygame.image.load('img/house2.png').convert_alpha()
+
+coin_sack_img = pygame.image.load('img/coin_sack.png').convert_alpha()
 
 
 # Load fonts
@@ -173,70 +176,10 @@ class IsoMap:
             enemy.animation(enemies)
             player.collision_enemy(enemy)
 
+        # pygame.draw.rect(screen, YELLOW, rect)
+
         pygame.draw.polygon(screen, (255, 0, 0), [
             (WIDTH/2, - PIXELS + 8), (WIDTH + PIXELS, HEIGHT/2), (WIDTH/2, HEIGHT + PIXELS / 2), (-2 * PIXELS + PIXELS, HEIGHT/2)], 2)
-
-
-class Shop:
-    def __init__(self, player):
-        self.player = player
-        self.pause = False
-
-    def draw_button(self, x, y, width, height, color):
-        rect = pygame.Rect(x - width/2, y, width, height)
-        pygame.draw.rect(screen, YELLOW, rect)
-        pygame.draw.rect(screen, color, rect, 10)
-
-        if rect.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0]:
-            print("buy")
-
-    def draw_text(self, text, color, size, x, y):
-        font = pygame.font.Font(font_type, size)
-        text = font.render(text, False, color)
-        text_rect = text.get_rect(center=(x, y))
-        screen.blit(text, text_rect)
-
-    def draw_image_button(self, x, y, width, image):
-        ratio = image.get_height()/image.get_width()
-        image = pygame.transform.scale(
-            image, (width, int(width*ratio)))
-        rect = image.get_rect(center=(x, y))
-
-        screen.blit(image, rect)
-
-    def draw(self):
-        screen.fill(GREY)
-
-        self.draw_button(WIDTH * 0.2, 80, 200, 300, BLACK)
-        self.draw_button(WIDTH * 0.5, 80, 200, 300, BLACK)
-        self.draw_button(WIDTH * 0.8, 80, 200, 300, BLACK)
-
-        self.draw_text("Heal", GREEN, 50, WIDTH * 0.2, 300)
-        self.draw_text("Gun", GREEN, 50, WIDTH * 0.5, 300)
-        self.draw_text("Coin", GREEN, 50, WIDTH * 0.8, 300)
-
-        self.draw_image_button(WIDTH * 0.2, 200, 100,  heal)
-        self.draw_image_button(WIDTH * 0.5, 200, 100,  gun)
-        self.draw_image_button(WIDTH * 0.8, 200, 100,  coin_4)
-
-    def update(self):
-        while self.pause:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    exit()
-
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_p:
-                        self.player.step_index = 0
-                        self.player.rect.x = 614
-                        self.player.rect.y = 182
-                        self.pause = False
-
-            self.draw()
-
-            pygame.display.update()
-            clock.tick(15)
 
 
 class AbstractMoveableObject:
@@ -322,6 +265,13 @@ class Player(AbstractMoveableObject):
         self.ammo = 0
 
         self.health = 100
+
+        self.coins = 0
+
+        # Vylepseni
+        self.add_ammo = 2
+        self.add_heal = 10
+        self.coin_spawn = 1
 
     def move(self, direction):
         # Pohyb hráče
@@ -623,7 +573,7 @@ class Gun(AbstractCollectableItem):
 
             if self.first:
                 self.on_player = True
-                player.ammo = 5
+                player.ammo = player.add_ammo
                 player.armed = True
                 self.first = False
 
@@ -638,8 +588,8 @@ class Heal(AbstractCollectableItem):
 
     def collision(self, player, collectable_items):
         if self.rect.colliderect(player.rect):
-            if player.health <= 80:
-                player.health += 20
+            if player.health <= 100 - player.add_heal:
+                player.health += player.add_heal
             else:
                 player.health = 100
             collectable_items.remove(self)
@@ -667,6 +617,7 @@ class Coin(AbstractCollectableItem):
         self.animation()
         if self.rect.colliderect(player.rect):
             coins.remove(self)
+            player.coins += 1
 
 
 class ObjectSpawner:
@@ -781,6 +732,118 @@ class HealthBar:
                          (self.x, self.y, 150 * ratio, 20))
 
 
+class AbstractUtilities:
+    def draw_button(self, x, y, width, height, color, price, type):
+        rect = pygame.Rect(x - width/2, y, width, height)
+        pygame.draw.rect(screen, YELLOW, rect)
+        pygame.draw.rect(screen, color, rect, 10)
+
+        if rect.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0] and price <= self.player.coins:
+            print("buy")
+            self.player.coins -= price
+            if type == 'heal':
+                self.player.add_heal += 5
+            elif type == 'gun':
+                self.player.add_ammo += 1
+            elif type == 'coin':
+                self.player.coin_spawn += 1
+
+    def draw_text(self, text, color, size, x, y):
+        font = pygame.font.Font(font_type, size)
+        text = font.render(str(text), False, color)
+        text_rect = text.get_rect(center=(x, y))
+        screen.blit(text, text_rect)
+
+    def draw_image_button(self, x, y, width, image):
+        ratio = image.get_height()/image.get_width()
+        image = pygame.transform.scale(
+            image, (width, int(width*ratio)))
+        rect = image.get_rect(center=(x, y))
+
+        screen.blit(image, rect)
+
+
+class CoinSack(AbstractUtilities):
+    def __init__(self, x, y, width, height, image):
+        super().__init__()
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.image = image
+        self.image = pygame.transform.scale(
+            self.image, (self.width, self.height))
+        self.rect = self.image.get_rect(topleft=(self.x, self.y))
+
+    def draw(self, player):
+        screen.blit(self.image, self.rect)
+        self.draw_text(player.coins, YELLOW, 50,
+                       self.x + self.width * 1.5, self.y + 30)
+
+
+class Timer(AbstractUtilities):
+    def __init__(self, x, y):
+        super().__init__()
+        self.x = x
+        self.y = y
+        self.timer = 0
+        self.sec = 0
+
+    def draw(self):
+        self.minutes, self.seconds = divmod(self.sec, 60)
+        self.draw_text(f"{self.minutes}:{self.seconds}",
+                       BLUE, 50, self.x, self.y)
+
+    def update(self):
+        if self.timer >= 60:
+            self.timer = 0
+            self.sec += 1
+
+        self.timer += 1
+        self.draw()
+
+
+class Shop(AbstractUtilities):
+    def __init__(self, player):
+        super().__init__()
+        self.player = player
+        self.pause = False
+
+    def draw(self):
+        screen.fill(GREY)
+
+        self.draw_button(WIDTH * 0.2, 80, 200, 300, BLACK, 1, 'heal')
+        self.draw_button(WIDTH * 0.5, 80, 200, 300, BLACK, 2, 'gun')
+        self.draw_button(WIDTH * 0.8, 80, 200, 300, BLACK, 3, 'coin')
+
+        self.draw_text("Heal", GREEN, 50, WIDTH * 0.2, 300)
+        self.draw_text("Gun", GREEN, 50, WIDTH * 0.5, 300)
+        self.draw_text("Coin", GREEN, 50, WIDTH * 0.8, 300)
+
+        self.draw_image_button(WIDTH * 0.2, 200, 100,  heal)
+        self.draw_image_button(WIDTH * 0.5, 200, 100,  gun)
+        self.draw_image_button(WIDTH * 0.8, 200, 100,  coin_4)
+
+    def update(self):
+        while self.pause:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    exit()
+
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_p:
+                        self.player.step_index = 0
+                        self.player.rect.x = 614
+                        self.player.rect.y = 182
+                        self.pause = False
+
+            self.draw()
+
+            pygame.display.update()
+            clock.tick(15)
+
+
 def main():
     # Create Map
     iso_map = IsoMap(MAP, Block)
@@ -806,6 +869,9 @@ def main():
     fireball_spawner = ObjectSpawner(2 * FPS, fireballs)
 
     shop_menu = Shop(player)
+
+    coin_sack = CoinSack(WIDTH - 200, 20, 50, 50, coin_sack_img)
+    timer = Timer(WIDTH / 2, HEIGHT - 50)
 
     while True:
         screen.fill(GREY)
@@ -865,6 +931,10 @@ def main():
             fireball_spawner.delete(10 * FPS)
 
         health_bar.draw(player.health)
+
+        coin_sack.draw(player)
+
+        timer.update()
 
         pygame.display.update()
         clock.tick(FPS)
