@@ -1,6 +1,5 @@
 import pygame
 from sys import exit
-import time
 from random import randint, choice
 
 from constants import *
@@ -663,9 +662,6 @@ class Particle:
                     pygame.draw.rect(screen, RED, rect, 2)
 
     def add_particles(self, x, y, radius=20, direction_x=(-5, 0), direction_y=(-5, 0)):
-        """pos_x = x
-        pos_y = y
-        radius = radius"""
         direction_x = randint(direction_x[0], direction_x[1])
         direction_y = randint(direction_y[0], direction_y[1])
         particle_circle = [[x, y], radius, [direction_x, direction_y]]
@@ -677,11 +673,11 @@ class Particle:
         self.particles = particle_copy
 
 
-class FireBall:
+class FireBall(Particle):
     def __init__(self, x, y):
+        super().__init__()
         self.x = x
         self.y = y
-        self.fireball = Particle()
         self.timer = 0
 
         self.target_x = 0
@@ -703,7 +699,7 @@ class FireBall:
         self.x += 8 if self.directionx >= 0 else -8
         self.y += 4 if self.directiony >= 0 else -4
 
-        self.fireball.add_particles(self.x, self.y)
+        self.add_particles(self.x, self.y)
 
         if HITBOX:
             pygame.draw.line(screen, BLUE, [self.x, self.y], [
@@ -711,7 +707,7 @@ class FireBall:
 
     def update(self, player):
         self.move(player)
-        self.fireball.emit()
+        self.emit()
 
 
 class HealthBar:
@@ -844,101 +840,107 @@ class Shop(AbstractUtilities):
             clock.tick(15)
 
 
-def main():
-    # Create Map
-    iso_map = IsoMap(MAP, Block)
-    iso_map.create_map()
+class Game():
+    def __init__(self):
+        # Vytvoreni mapy
+        self.iso_map = IsoMap(MAP, Block)
+        self.iso_map.create_map()
 
-    player = Player(WIDTH / 2 + 5, HEIGHT / 2 - 10, PIXELS - 12, PIXELS - 8)
+        # Vytvorecni hrace
+        self.player = Player(WIDTH / 2 + 5, HEIGHT / 2 -
+                             10, PIXELS - 12, PIXELS - 8)
 
-    enemies = []
+        # Vytvoreni pomocnych ukazatelu
+        self.shop_menu = Shop(self.player)
+        self.coin_sack = CoinSack(WIDTH - 200, 20, 50, 50, coin_sack_img)
+        self.timer = Timer(WIDTH / 2, HEIGHT - 50)
+        self.health_bar = HealthBar(50, 50, 100)
 
-    fireballs = []
+        # Vytvoreni listu pro objekty
+        self.enemies = []
+        self.fireballs = []
+        self.collectable_items = []
+        self.bullets = []
 
-    health_bar = HealthBar(50, 50, 100)
+        # Vytvoreni autovaticky se objevujicich objektu
+        self.object_spawner = ObjectSpawner(5 * FPS, self.collectable_items)
+        self.enemy_spawner = ObjectSpawner(5 * FPS, self.enemies)
+        self.fireball_spawner = ObjectSpawner(2 * FPS, self.fireballs)
 
-    direction = ''
+        self.direction = ''
 
-    collectable_items = [Gun(
-        115, 215, PIXELS - 37, PIXELS - 45, gun), Heal(300, 300, PIXELS - 40, PIXELS - 35, heal)]
+    def draw(self):
+        self.iso_map.draw(self.player, self.enemies, self.shop_menu)
+        self.health_bar.draw(self.player.health)
+        self.coin_sack.draw(self.player)
 
-    bullets = []
+    def update(self):
+        self.draw()
 
-    object_spawner = ObjectSpawner(5 * FPS, collectable_items)
-    enemy_spawner = ObjectSpawner(5 * FPS, enemies)
-    fireball_spawner = ObjectSpawner(2 * FPS, fireballs)
+        self.player.shoot(self.bullets)
 
-    shop_menu = Shop(player)
-
-    coin_sack = CoinSack(WIDTH - 200, 20, 50, 50, coin_sack_img)
-    timer = Timer(WIDTH / 2, HEIGHT - 50)
-
-    while True:
-        screen.fill(GREY)
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                exit()
-
-        keys = pygame.key.get_pressed()
-        if player.step_index >= 16:
-            if keys[pygame.K_UP] or keys[pygame.K_w]:
-                direction = 'up'
-                player.step_index = 0
-            if keys[pygame.K_DOWN] or keys[pygame.K_s]:
-                direction = 'down'
-                player.step_index = 0
-            if keys[pygame.K_LEFT] or keys[pygame.K_a]:
-                direction = 'left'
-                player.step_index = 0
-            if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
-                direction = 'right'
-                player.step_index = 0
-
-            if keys[pygame.K_SPACE] and player.shoot_cooldown < 0 and player.armed:
-                player.fire = True
-                player.shoot_cooldown = 10
-
-        else:
-            player.step_index += 1
-            player.move(direction)
-            player.animation()
-
-        iso_map.draw(player, enemies, shop_menu)
-
-        player.shoot(bullets)
-
-        for item in collectable_items:
-            item.update(player, collectable_items)
+        for item in self.collectable_items:
+            item.update(self.player, self.collectable_items)
 
         # Spawn Guns
-        object_spawner.spawn(choice(
+        self.object_spawner.spawn(choice(
             [Gun(0, 0, PIXELS - 37, PIXELS - 45, gun), Heal(0, 0, PIXELS - 40, PIXELS - 35, heal), Coin(0, 0, PIXELS - 20, PIXELS - 30, [coin_1, coin_2, coin_3, coin_4, coin_5, coin_6])]))
 
-        if len(enemies) < 3:
-            enemy_spawner.spawn(Enemy(choice([WIDTH / 2, 0, WIDTH]), choice([0, HEIGHT]),
-                                      PIXELS - 12, PIXELS - 8, player))
+        if len(self.enemies) < 3:
+            self.enemy_spawner.spawn(Enemy(choice([WIDTH / 2, 0, WIDTH]), choice([0, HEIGHT]),
+                                           PIXELS - 12, PIXELS - 8, self.player))
 
-        for bullet in bullets:
-            bullet.update(direction)
-            for enemy in enemies:
-                enemy.bullet_collision(bullet, bullets)
+        for bullet in self.bullets:
+            bullet.update(self.direction)
+            for enemy in self.enemies:
+                enemy.bullet_collision(bullet, self.bullets)
 
-        fireball_spawner.spawn(FireBall(-100, -100))
-        for fireball in fireballs:
-            fireball.update(player)
-            player.collision_fireball(fireball)
-            fireball_spawner.delete(10 * FPS)
+        self.fireball_spawner.spawn(FireBall(-100, -100))
+        for fireball in self.fireballs:
+            fireball.update(self.player)
+            self.player.collision_fireball(fireball)
+            self.fireball_spawner.delete(10 * FPS)
 
-        health_bar.draw(player.health)
+        self.timer.update()
 
-        coin_sack.draw(player)
+    def run(self):
+        while True:
+            screen.fill(GREY)
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    exit()
 
-        timer.update()
+            keys = pygame.key.get_pressed()
+            if self.player.step_index >= 16:
+                if keys[pygame.K_UP] or keys[pygame.K_w]:
+                    self.direction = 'up'
+                    self.player.step_index = 0
+                if keys[pygame.K_DOWN] or keys[pygame.K_s]:
+                    self.direction = 'down'
+                    self.player.step_index = 0
+                if keys[pygame.K_LEFT] or keys[pygame.K_a]:
+                    self.direction = 'left'
+                    self.player.step_index = 0
+                if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+                    self.direction = 'right'
+                    self.player.step_index = 0
 
-        pygame.display.update()
-        clock.tick(FPS)
+                if keys[pygame.K_SPACE] and self.player.shoot_cooldown < 0 and self.player.armed:
+                    self.player.fire = True
+                    self.player.shoot_cooldown = 10
+
+            else:
+                self.player.step_index += 1
+                self.player.move(self.direction)
+                self.player.animation()
+
+            self.update()
+
+            pygame.display.update()
+            clock.tick(FPS)
 
 
+game = Game()
 if __name__ == "__main__":
-    main()
+    game.run()
