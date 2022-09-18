@@ -1,5 +1,3 @@
-from random import randint
-
 
 WIDTH, HEIGHT = 1280, 640
 NAME = "ISO METRICS"
@@ -133,28 +131,3 @@ FLOOR5 = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 
 
 MAP = [FLOOR1, FLOOR2, FLOOR3, FLOOR4, FLOOR5]
-
-
-"""def spawn_position():
-    choice = randint(1, 4)
-    if choice == 1:
-        x = randint(0, 19)
-        y = randint(0, 19 - x)
-        return x * 32 + WIDTH / 2 - 20, y * 16 + HEIGHT / 2 - 20
-
-    elif choice == 2:
-        x = randint(0, 19)
-        y = randint(0, x)
-        return x * 32, y * 16 + HEIGHT / 2 - 20
-
-    elif choice == 3:
-        y = randint(0, 19)
-        x = randint(0, y)
-        return x * 32 + WIDTH / 2, y * 16
-
-    elif choice == 4:
-        y = randint(0, 19)
-        x = randint(0, y)
-        return WIDTH / 2 - x * 32, y * 16 - 20
-
-    return 0, 0"""

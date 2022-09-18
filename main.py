@@ -33,6 +33,10 @@ player_down2 = pygame.image.load('img/player/down2.png').convert_alpha()
 player_down3 = pygame.image.load('img/player/down3.png').convert_alpha()
 player_down4 = pygame.image.load('img/player/down4.png').convert_alpha()
 
+player_death1 = pygame.image.load('img/player/death1.png').convert_alpha()
+player_death2 = pygame.image.load('img/player/death2.png').convert_alpha()
+player_death3 = pygame.image.load('img/player/death3.png').convert_alpha()
+player_death4 = pygame.image.load('img/player/death4.png').convert_alpha()
 
 block = pygame.image.load('img/block.png').convert_alpha()
 enemy_down1 = pygame.image.load('img/enemy1/down0.png').convert_alpha()
@@ -164,6 +168,7 @@ class IsoMap:
             if layer2.floor > player.last_collistion and player.rect.bottom < layer2.rect.bottom - 16 or layer2.floor > player.last_collistion + 1:
                 layer2.draw()
 
+                # Kolize s obchodem a nasledný vstup do obchodu
                 if layer2.action and player.rect.colliderect(layer2.collide_point) and layer2.floor == player.last_collistion + 1:
                     shop_menu.pause = True
                     shop_menu.update()
@@ -248,6 +253,9 @@ class Player(AbstractMoveableObject):
                                  player_down2, player_down3, player_down4]
         self.player_walk_up = [player_up1,
                                player_up2, player_up3, player_up4]
+
+        self.player_death = [player_death1,
+                             player_death2, player_death3, player_death4]
         self.player_index = 0
         self.image = self.player_walk_down[self.player_index]
         self.image = pygame.transform.scale(
@@ -272,38 +280,48 @@ class Player(AbstractMoveableObject):
         self.add_heal = 10
         self.coin_spawn = 1
 
-    def move(self, direction):
+    def move(self):
         # Pohyb hráče
-        self.direction = direction
-        if direction == 'left':
-            self.rect.y -= 1
-            self.rect.x -= 2
-            self.image = pygame.transform.flip(
-                self.player_walk_up[int(self.player_index)], True, False)
+        if self.health > 0:
+            if self.direction == 'left':
+                self.rect.y -= 1
+                self.rect.x -= 2
+                self.image = pygame.transform.flip(
+                    self.player_walk_up[int(self.player_index)], True, False)
 
-        if direction == 'right':
-            self.rect.y += 1
-            self.rect.x += 2
-            self.image = self.player_walk_down[int(self.player_index)]
+            if self.direction == 'right':
+                self.rect.y += 1
+                self.rect.x += 2
+                self.image = self.player_walk_down[int(self.player_index)]
 
-        if direction == 'up':
-            self.rect.y -= 1
-            self.rect.x += 2
-            self.image = self.player_walk_up[int(self.player_index)]
+            if self.direction == 'up':
+                self.rect.y -= 1
+                self.rect.x += 2
+                self.image = self.player_walk_up[int(self.player_index)]
 
-        if direction == 'down':
-            self.rect.y += 1
-            self.rect.x -= 2
-            self.image = pygame.transform.flip(
-                self.player_walk_down[int(self.player_index)], True, False)
+            if self.direction == 'down':
+                self.rect.y += 1
+                self.rect.x -= 2
+                self.image = pygame.transform.flip(
+                    self.player_walk_down[int(self.player_index)], True, False)
 
         self.image = pygame.transform.scale(
             self.image, (self.width, self.height))
 
     def animation(self):
-        self.player_index += 0.2
-        if self.player_index >= len(self.player_walk_down):
-            self.player_index = 0
+        if self.health > 0:
+            self.player_index += 0.2
+            if self.player_index >= len(self.player_walk_down):
+                self.player_index = 0
+
+        else:
+            self.player_index += 0.1
+            if self.player_index >= len(self.player_walk_down):
+                self.player_index = len(self.player_walk_down) - 1
+
+            self.image = self.player_death[int(self.player_index)]
+            self.image = pygame.transform.scale(
+                self.image, (self.width, self.height))
 
     def shoot(self, bullets):
         if self.armed and self.fire:
@@ -321,6 +339,31 @@ class Player(AbstractMoveableObject):
     def collision_enemy(self, enemy):
         if self.rect.colliderect(enemy.rect):
             self.health -= DEMAGE
+
+    def update(self):
+        keys = pygame.key.get_pressed()
+        if self.step_index >= 16:
+            if keys[pygame.K_UP] or keys[pygame.K_w]:
+                self.direction = 'up'
+                self.step_index = 0
+            if keys[pygame.K_DOWN] or keys[pygame.K_s]:
+                self.direction = 'down'
+                self.step_index = 0
+            if keys[pygame.K_LEFT] or keys[pygame.K_a]:
+                self.direction = 'left'
+                self.step_index = 0
+            if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+                self.direction = 'right'
+                self.step_index = 0
+
+            if keys[pygame.K_SPACE] and self.shoot_cooldown < 0 and self.armed:
+                self.fire = True
+                self.shoot_cooldown = 10
+
+        else:
+            self.step_index += 1
+            self.move()
+            self.animation()
 
 
 class Bullet:
@@ -735,7 +778,6 @@ class AbstractUtilities:
         pygame.draw.rect(screen, color, rect, 10)
 
         if rect.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0] and price <= self.player.coins:
-            print("buy")
             self.player.coins -= price
             if type == 'heal':
                 self.player.add_heal += 5
@@ -840,11 +882,41 @@ class Shop(AbstractUtilities):
             clock.tick(15)
 
 
+class MainMenu(AbstractUtilities):
+    def __init__(self):
+        super().__init__()
+        self.main_menu = True
+
+    def draw(self):
+        self.draw_text("Welcome to my Iso Game", RED, 100, WIDTH/2, 100)
+        self.draw_text("Press space to start the game...",
+                       GREEN, 70, WIDTH/2, 200)
+
+    def update(self):
+        while self.main_menu:
+            screen.fill(GREY)
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    exit()
+
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                        self.main_menu = False
+
+            self.draw()
+            pygame.display.update()
+            clock.tick(15)
+
+
 class Game():
     def __init__(self):
         # Vytvoreni mapy
         self.iso_map = IsoMap(MAP, Block)
         self.iso_map.create_map()
+
+        # Hlavni menu hry
+        self.main_menu = MainMenu()
 
         # Vytvorecni hrace
         self.player = Player(WIDTH / 2 + 5, HEIGHT / 2 -
@@ -867,7 +939,28 @@ class Game():
         self.enemy_spawner = ObjectSpawner(5 * FPS, self.enemies)
         self.fireball_spawner = ObjectSpawner(2 * FPS, self.fireballs)
 
-        self.direction = ''
+        self.difficulty = 1
+
+    def restart(self):
+        # Vycisteni listu
+        self.enemies.clear()
+        self.fireballs.clear()
+        self.collectable_items.clear()
+        self.bullets.clear()
+
+        # Resotovani pozice hrace
+        self.player.rect.x, self.player.rect.y = WIDTH / 2 + 5, HEIGHT / 2 - 10
+        self.player.last_collistion = 2
+
+        self.player.health = 100
+        self.player.add_ammo = 2
+        self.player.add_heal = 10
+        self.player.coin_spawn = 1
+        self.player.ammo = 0
+        self.player.coins = 0
+
+        # Resetovani casomiry
+        self.timer.sec = 0
 
     def draw(self):
         self.iso_map.draw(self.player, self.enemies, self.shop_menu)
@@ -877,6 +970,7 @@ class Game():
     def update(self):
         self.draw()
 
+        self.player.update()
         self.player.shoot(self.bullets)
 
         for item in self.collectable_items:
@@ -886,12 +980,12 @@ class Game():
         self.object_spawner.spawn(choice(
             [Gun(0, 0, PIXELS - 37, PIXELS - 45, gun), Heal(0, 0, PIXELS - 40, PIXELS - 35, heal), Coin(0, 0, PIXELS - 20, PIXELS - 30, [coin_1, coin_2, coin_3, coin_4, coin_5, coin_6])]))
 
-        if len(self.enemies) < 3:
+        if len(self.enemies) < self.difficulty:
             self.enemy_spawner.spawn(Enemy(choice([WIDTH / 2, 0, WIDTH]), choice([0, HEIGHT]),
                                            PIXELS - 12, PIXELS - 8, self.player))
 
         for bullet in self.bullets:
-            bullet.update(self.direction)
+            bullet.update(self.player.direction)
             for enemy in self.enemies:
                 enemy.bullet_collision(bullet, self.bullets)
 
@@ -903,6 +997,9 @@ class Game():
 
         self.timer.update()
 
+        if self.timer.timer >= 60 and self.timer.sec % 30 == 0:
+            self.difficulty += 1
+
     def run(self):
         while True:
             screen.fill(GREY)
@@ -911,30 +1008,14 @@ class Game():
                     pygame.quit()
                     exit()
 
-            keys = pygame.key.get_pressed()
-            if self.player.step_index >= 16:
-                if keys[pygame.K_UP] or keys[pygame.K_w]:
-                    self.direction = 'up'
-                    self.player.step_index = 0
-                if keys[pygame.K_DOWN] or keys[pygame.K_s]:
-                    self.direction = 'down'
-                    self.player.step_index = 0
-                if keys[pygame.K_LEFT] or keys[pygame.K_a]:
-                    self.direction = 'left'
-                    self.player.step_index = 0
-                if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
-                    self.direction = 'right'
-                    self.player.step_index = 0
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        self.main_menu.main_menu = True
 
-                if keys[pygame.K_SPACE] and self.player.shoot_cooldown < 0 and self.player.armed:
-                    self.player.fire = True
-                    self.player.shoot_cooldown = 10
+                    if event.key == pygame.K_r:
+                        self.restart()
 
-            else:
-                self.player.step_index += 1
-                self.player.move(self.direction)
-                self.player.animation()
-
+            self.main_menu.update()
             self.update()
 
             pygame.display.update()
