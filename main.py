@@ -1,3 +1,4 @@
+from xml.sax import SAXNotSupportedException
 import pygame
 from sys import exit
 from random import randint, choice
@@ -63,7 +64,9 @@ coin_6 = pygame.image.load('img/coins/coin_6.png').convert_alpha()
 
 shop = pygame.image.load('img/house2.png').convert_alpha()
 
-coin_sack_img = pygame.image.load('img/coin_sack.png').convert_alpha()
+coin_sack_img = pygame.image.load('img/coin_sack1.png').convert_alpha()
+
+border = pygame.image.load('img/border2.png').convert_alpha()
 
 
 # Load fonts
@@ -155,6 +158,7 @@ class IsoMap:
             layer1.draw()
             # Kolize hráče s bloky
             player.collision(layer1)
+
             # Kolize nepřítele s bloky
             for enemy in enemies:
                 enemy.collision(layer1)
@@ -180,10 +184,8 @@ class IsoMap:
             enemy.animation(enemies)
             player.collision_enemy(enemy)
 
-        # pygame.draw.rect(screen, YELLOW, rect)
-
-        pygame.draw.polygon(screen, (255, 0, 0), [
-            (WIDTH/2, - PIXELS + 8), (WIDTH + PIXELS, HEIGHT/2), (WIDTH/2, HEIGHT + PIXELS / 2), (-2 * PIXELS + PIXELS, HEIGHT/2)], 2)
+        # pygame.draw.polygon(screen, (255, 0, 0), [
+            # (WIDTH/2, - PIXELS + 8), (WIDTH + PIXELS, HEIGHT/2), (WIDTH/2, HEIGHT + PIXELS / 2), (-2 * PIXELS + PIXELS, HEIGHT/2)], 2)
 
 
 class AbstractMoveableObject:
@@ -264,6 +266,8 @@ class Player(AbstractMoveableObject):
 
         self.direction = ''
         self.step_index = 0
+        self.speedx = 0
+        self.speedy = 0
 
         # Proměnné použité ke střelbě
         self.armed = False
@@ -280,30 +284,40 @@ class Player(AbstractMoveableObject):
         self.add_heal = 10
         self.coin_spawn = 1
 
+        # Herni prostor
+        self.border_rect = border.get_rect(topleft=(-3, 0))
+        self.border_mask = pygame.mask.from_surface(border)
+        self.mask = pygame.mask.from_surface(self.image)
+
     def move(self):
+
         # Pohyb hráče
+
         if self.health > 0:
             if self.direction == 'left':
-                self.rect.y -= 1
-                self.rect.x -= 2
+                self.speedy = -1
+                self.speedx = -2
                 self.image = pygame.transform.flip(
                     self.player_walk_up[int(self.player_index)], True, False)
 
             if self.direction == 'right':
-                self.rect.y += 1
-                self.rect.x += 2
+                self.speedy = 1
+                self.speedx = 2
                 self.image = self.player_walk_down[int(self.player_index)]
 
             if self.direction == 'up':
-                self.rect.y -= 1
-                self.rect.x += 2
+                self.speedy = -1
+                self.speedx = 2
                 self.image = self.player_walk_up[int(self.player_index)]
 
             if self.direction == 'down':
-                self.rect.y += 1
-                self.rect.x -= 2
+                self.speedy = 1
+                self.speedx = -2
                 self.image = pygame.transform.flip(
                     self.player_walk_down[int(self.player_index)], True, False)
+
+            self.rect.x += self.speedx
+            self.rect.y += self.speedy
 
         self.image = pygame.transform.scale(
             self.image, (self.width, self.height))
@@ -341,6 +355,11 @@ class Player(AbstractMoveableObject):
             self.health -= DEMAGE
 
     def update(self):
+        #screen.blit(border, self.border_rect)
+
+        offset_x, offset_y = (
+            self.border_rect.x-self.rect.x), (self.border_rect.y-self.rect.y)
+
         keys = pygame.key.get_pressed()
         if self.step_index >= 16:
             if keys[pygame.K_UP] or keys[pygame.K_w]:
@@ -364,6 +383,9 @@ class Player(AbstractMoveableObject):
             self.step_index += 1
             self.move()
             self.animation()
+
+        if not self.mask.overlap(self.border_mask, (offset_x, offset_y)):
+            self.health -= 1
 
 
 class Bullet:
@@ -828,8 +850,12 @@ class Timer(AbstractUtilities):
         self.sec = 0
 
     def draw(self):
-        self.minutes, self.seconds = divmod(self.sec, 60)
-        self.draw_text(f"{self.minutes}:{self.seconds}",
+        minutes, seconds = divmod(self.sec, 60)
+
+        if len(str(seconds)) < 2:
+            seconds = "0" + str(seconds)
+
+        self.draw_text(f"{minutes}:{seconds}",
                        BLUE, 50, self.x, self.y)
 
     def update(self):
@@ -845,10 +871,25 @@ class Shop(AbstractUtilities):
     def __init__(self, player):
         super().__init__()
         self.player = player
+        self.coin_sack = CoinSack(WIDTH - 200, 20, 50, 50, coin_sack_img)
         self.pause = False
+
+    def exit(self):
+        rect = pygame.Rect(10, 10, 100, 50)
+        pygame.draw.rect(screen, RED, rect)
+        pygame.draw.rect(screen, BLACK, rect, 10)
+        self.draw_text("Exit", GREEN, 50, 60, 40)
+
+        if rect.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0]:
+            self.player.step_index = 20
+            self.player.rect.x = 614
+            self.player.rect.y = 182
+            self.pause = False
 
     def draw(self):
         screen.fill(GREY)
+        self.exit()
+        self.coin_sack.draw(self.player)
 
         self.draw_button(WIDTH * 0.2, 80, 200, 300, BLACK, 1, 'heal')
         self.draw_button(WIDTH * 0.5, 80, 200, 300, BLACK, 2, 'gun')
@@ -871,7 +912,7 @@ class Shop(AbstractUtilities):
 
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_p:
-                        self.player.step_index = 0
+                        self.player.step_index = 20
                         self.player.rect.x = 614
                         self.player.rect.y = 182
                         self.pause = False
@@ -958,6 +999,8 @@ class Game():
         self.player.coin_spawn = 1
         self.player.ammo = 0
         self.player.coins = 0
+        self.player.image = pygame.transform.scale(
+            self.player.player_walk_down[int(self.player.player_index)], (self.player.width, self.player.height))
 
         # Resetovani casomiry
         self.timer.sec = 0
@@ -1017,6 +1060,8 @@ class Game():
 
             self.main_menu.update()
             self.update()
+
+            # print(self.player.rect.x, self.player.rect.y)
 
             pygame.display.update()
             clock.tick(FPS)
