@@ -1,4 +1,3 @@
-from xml.sax import SAXNotSupportedException
 import pygame
 from sys import exit
 from random import randint, choice
@@ -67,6 +66,17 @@ shop = pygame.image.load('img/house2.png').convert_alpha()
 coin_sack_img = pygame.image.load('img/coin_sack1.png').convert_alpha()
 
 border = pygame.image.load('img/border2.png').convert_alpha()
+
+button_heal = pygame.image.load('img/buttons/button_heal1.png').convert_alpha()
+button_gun = pygame.image.load('img/buttons/button_gun.png').convert_alpha()
+button_coin = pygame.image.load('img/buttons/button_coin.png').convert_alpha()
+button_exit = pygame.image.load('img/buttons/button_exit.png').convert_alpha()
+button_start = pygame.image.load(
+    'img/buttons/button_start.png').convert_alpha()
+
+shop_roof = pygame.image.load('img/shop_inside.png').convert_alpha()
+
+thumbnail = pygame.image.load('img/main_menu.png').convert_alpha()
 
 
 # Load fonts
@@ -355,7 +365,7 @@ class Player(AbstractMoveableObject):
             self.health -= DEMAGE
 
     def update(self):
-        #screen.blit(border, self.border_rect)
+        # screen.blit(border, self.border_rect)
 
         offset_x, offset_y = (
             self.border_rect.x-self.rect.x), (self.border_rect.y-self.rect.y)
@@ -808,6 +818,27 @@ class AbstractUtilities:
             elif type == 'coin':
                 self.player.coin_spawn += 1
 
+    def draw_btn(self, x, y, width, height, image, color, color_active, price, type):
+        COLOR = color
+        image = pygame.transform.scale(
+            image, (width, height))
+        rect = image.get_rect(topleft=(x, y))
+
+        if rect.collidepoint(pygame.mouse.get_pos()):
+            color = color_active
+            if pygame.mouse.get_pressed()[0] and price <= self.player.coins:
+                self.player.coins -= price
+                if type == 'heal':
+                    self.player.add_heal += 5
+                elif type == 'gun':
+                    self.player.add_ammo += 1
+                elif type == 'coin':
+                    self.player.coin_spawn += 1
+        else:
+            color = COLOR
+        pygame.draw.rect(screen, color, rect)
+        screen.blit(image, rect)
+
     def draw_text(self, text, color, size, x, y):
         font = pygame.font.Font(font_type, size)
         text = font.render(str(text), False, color)
@@ -858,6 +889,12 @@ class Timer(AbstractUtilities):
         self.draw_text(f"{minutes}:{seconds}",
                        BLUE, 50, self.x, self.y)
 
+    def draw_final(self):
+        minutes, seconds = divmod(self.sec, 60)
+
+        self.draw_text(f"{minutes}:{seconds}",
+                       BLUE, 200, WIDTH/2, 200)
+
     def update(self):
         if self.timer >= 60:
             self.timer = 0
@@ -871,14 +908,16 @@ class Shop(AbstractUtilities):
     def __init__(self, player):
         super().__init__()
         self.player = player
-        self.coin_sack = CoinSack(WIDTH - 200, 20, 50, 50, coin_sack_img)
+        self.coin_sack = CoinSack(WIDTH - 150, 20, 50, 50, coin_sack_img)
         self.pause = False
 
     def exit(self):
-        rect = pygame.Rect(10, 10, 100, 50)
+        """rect = pygame.Rect(10, 10, 100, 50)
         pygame.draw.rect(screen, RED, rect)
         pygame.draw.rect(screen, BLACK, rect, 10)
-        self.draw_text("Exit", GREEN, 50, 60, 40)
+        self.draw_text("Exit", GREEN, 50, 60, 40)"""
+        rect = button_exit.get_rect(topleft=(10, 10))
+        screen.blit(button_exit, rect)
 
         if rect.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0]:
             self.player.step_index = 20
@@ -888,20 +927,15 @@ class Shop(AbstractUtilities):
 
     def draw(self):
         screen.fill(GREY)
+        screen.blit(shop_roof, (50, -20))
+        self.draw_btn(WIDTH * 0.2+50, 300, 200, 300,
+                      button_heal, (238, 70, 44), (255, 34, 0), 1, 'heal')
+        self.draw_btn(WIDTH * 0.4+50, 300, 200, 300,
+                      button_gun, (179, 202, 190), (0, 255, 122), 2, 'gun')
+        self.draw_btn(WIDTH * 0.6+50, 300, 200, 300,
+                      button_coin, (255, 168, 0), (255, 214, 0), 3, 'coin')
         self.exit()
         self.coin_sack.draw(self.player)
-
-        self.draw_button(WIDTH * 0.2, 80, 200, 300, BLACK, 1, 'heal')
-        self.draw_button(WIDTH * 0.5, 80, 200, 300, BLACK, 2, 'gun')
-        self.draw_button(WIDTH * 0.8, 80, 200, 300, BLACK, 3, 'coin')
-
-        self.draw_text("Heal", GREEN, 50, WIDTH * 0.2, 300)
-        self.draw_text("Gun", GREEN, 50, WIDTH * 0.5, 300)
-        self.draw_text("Coin", GREEN, 50, WIDTH * 0.8, 300)
-
-        self.draw_image_button(WIDTH * 0.2, 200, 100,  heal)
-        self.draw_image_button(WIDTH * 0.5, 200, 100,  gun)
-        self.draw_image_button(WIDTH * 0.8, 200, 100,  coin_4)
 
     def update(self):
         while self.pause:
@@ -929,9 +963,11 @@ class MainMenu(AbstractUtilities):
         self.main_menu = True
 
     def draw(self):
-        self.draw_text("Welcome to my Iso Game", RED, 100, WIDTH/2, 100)
-        self.draw_text("Press space to start the game...",
-                       GREEN, 70, WIDTH/2, 200)
+        # self.draw_text("Welcome to my Iso Game", RED, 100, WIDTH/2, 100)
+        # self.draw_text("Press space to start the game...",
+        # GREEN, 70, WIDTH/2, 200)
+        screen.blit(thumbnail, (0, 0))
+        screen.blit(button_start, (500, 300))
 
     def update(self):
         while self.main_menu:
@@ -965,7 +1001,7 @@ class Game():
 
         # Vytvoreni pomocnych ukazatelu
         self.shop_menu = Shop(self.player)
-        self.coin_sack = CoinSack(WIDTH - 200, 20, 50, 50, coin_sack_img)
+        self.coin_sack = CoinSack(WIDTH - 150, 20, 50, 50, coin_sack_img)
         self.timer = Timer(WIDTH / 2, HEIGHT - 50)
         self.health_bar = HealthBar(50, 50, 100)
 
@@ -1038,7 +1074,10 @@ class Game():
             self.player.collision_fireball(fireball)
             self.fireball_spawner.delete(10 * FPS)
 
-        self.timer.update()
+        if self.player.health > 0:
+            self.timer.update()
+        else:
+            self.timer.draw_final()
 
         if self.timer.timer >= 60 and self.timer.sec % 30 == 0:
             self.difficulty += 1
