@@ -1,4 +1,4 @@
-# Vývoj počítačové hry v Pygame (v domácím prostředí)
+# Vývoj počítačové hry v Pygame
 
 ## Úvod
 
@@ -23,7 +23,7 @@
     - srovnání vybíraných jazyků (klady x zápory)
     - související framework
 
-### 1.2.2 Výběr používaného softwaru
+#### 1.2.2 Výběr používaného softwaru
 
     - výběr IDE, grafického editoru,...
 

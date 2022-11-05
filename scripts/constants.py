@@ -1,8 +1,12 @@
+import pygame
 
 WIDTH, HEIGHT = 1280, 640
 NAME = "ISO METRICS"
 NUMBER_OF_BLOCKS = 20
 PIXELS = 64
+
+SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
+CLOCK = pygame.time.Clock()
 
 FPS = 60
 
