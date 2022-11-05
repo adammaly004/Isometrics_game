@@ -3,6 +3,7 @@ from sys import exit
 from random import randint, choice
 
 from constants import *
+from assets import *
 
 
 pygame.init()
@@ -12,75 +13,6 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 clock = pygame.time.Clock()
 pygame.display.set_caption(NAME)
 
-# Assets
-grass = pygame.image.load('img/grass.png').convert_alpha()
-grass1 = pygame.image.load('img/grass1.png').convert_alpha()
-grass2 = pygame.image.load('img/grass2.png').convert_alpha()
-stone = pygame.image.load('img/stone.png').convert_alpha()
-stone1 = pygame.image.load('img/stone1.png').convert_alpha()
-bush = pygame.image.load('img/bush.png').convert_alpha()
-flower = pygame.image.load('img/flower.png').convert_alpha()
-water = pygame.image.load('img/water.png').convert_alpha()
-
-
-player_up1 = pygame.image.load('img/player/up1.png').convert_alpha()
-player_up2 = pygame.image.load('img/player/up2.png').convert_alpha()
-player_up3 = pygame.image.load('img/player/up3.png').convert_alpha()
-player_up4 = pygame.image.load('img/player/up4.png').convert_alpha()
-
-player_down1 = pygame.image.load('img/player/down1.png').convert_alpha()
-player_down2 = pygame.image.load('img/player/down2.png').convert_alpha()
-player_down3 = pygame.image.load('img/player/down3.png').convert_alpha()
-player_down4 = pygame.image.load('img/player/down4.png').convert_alpha()
-
-player_death1 = pygame.image.load('img/player/death1.png').convert_alpha()
-player_death2 = pygame.image.load('img/player/death2.png').convert_alpha()
-player_death3 = pygame.image.load('img/player/death3.png').convert_alpha()
-player_death4 = pygame.image.load('img/player/death4.png').convert_alpha()
-
-block = pygame.image.load('img/block.png').convert_alpha()
-enemy_down1 = pygame.image.load('img/enemy1/down0.png').convert_alpha()
-enemy_down2 = pygame.image.load('img/enemy1/down2.png').convert_alpha()
-
-enemy_death1 = pygame.image.load('img/enemy1/down3.png').convert_alpha()
-enemy_death2 = pygame.image.load('img/enemy1/down4.png').convert_alpha()
-enemy_death3 = pygame.image.load('img/enemy1/down5.png').convert_alpha()
-enemy_death4 = pygame.image.load('img/enemy1/down6.png').convert_alpha()
-enemy_death5 = pygame.image.load('img/enemy1/down7.png').convert_alpha()
-
-enemy_up1 = pygame.image.load('img/enemy/up1.png').convert_alpha()
-enemy_up2 = pygame.image.load('img/enemy/up2.png').convert_alpha()
-
-gun = pygame.image.load('img/guns/shot_side.png').convert_alpha()
-heal = pygame.image.load('img/heal.png').convert_alpha()
-
-coin_1 = pygame.image.load('img/coins/coin_1.png').convert_alpha()
-coin_2 = pygame.image.load('img/coins/coin_2.png').convert_alpha()
-coin_3 = pygame.image.load('img/coins/coin_3.png').convert_alpha()
-coin_4 = pygame.image.load('img/coins/coin_4.png').convert_alpha()
-coin_5 = pygame.image.load('img/coins/coin_5.png').convert_alpha()
-coin_6 = pygame.image.load('img/coins/coin_6.png').convert_alpha()
-
-shop = pygame.image.load('img/house2.png').convert_alpha()
-
-coin_sack_img = pygame.image.load('img/coin_sack1.png').convert_alpha()
-
-border = pygame.image.load('img/border2.png').convert_alpha()
-
-button_heal = pygame.image.load('img/buttons/button_heal1.png').convert_alpha()
-button_gun = pygame.image.load('img/buttons/button_gun.png').convert_alpha()
-button_coin = pygame.image.load('img/buttons/button_coin.png').convert_alpha()
-button_exit = pygame.image.load('img/buttons/button_exit.png').convert_alpha()
-button_start = pygame.image.load(
-    'img/buttons/button_start.png').convert_alpha()
-
-shop_roof = pygame.image.load('img/shop_inside.png').convert_alpha()
-
-thumbnail = pygame.image.load('img/main_menu.png').convert_alpha()
-
-
-# Load fonts
-font_type = 'Pixeltype.ttf'
 
 # Vytvoreni bloku
 
@@ -99,7 +31,7 @@ class Block:
         self.action = action
 
     def draw(self):
-        # Vÿtvoření posunu všech bloků
+        # Vytvoření posunu všech bloků
         off_set = NUMBER_OF_BLOCKS * \
             (NUMBER_OF_BLOCKS / 2 / NUMBER_OF_BLOCKS) * \
             self.width - self.width / 2
@@ -122,10 +54,9 @@ class Block:
 
 
 class IsoMap:
-    def __init__(self, map, block):
+    def __init__(self, map):
         self.map = map
         self.blocks = []
-        self.block = block
 
     def create_map(self):
         # Vytvoření herní mapy
@@ -136,31 +67,31 @@ class IsoMap:
                         continue
                     elif self.map[floor][i][j] == 1:
                         self.blocks.append(
-                            self.block(i - floor * 0.5, j - floor * 0.5, PIXELS, PIXELS, grass, floor))
+                            Block(i - floor * 0.5, j - floor * 0.5, PIXELS, PIXELS, grass, floor))
                     elif self.map[floor][i][j] == 2:
                         self.blocks.append(
-                            self.block(i - floor * 0.5, j - floor * 0.5, PIXELS, PIXELS, grass1, floor))
+                            Block(i - floor * 0.5, j - floor * 0.5, PIXELS, PIXELS, grass1, floor))
                     elif self.map[floor][i][j] == 3:
                         self.blocks.append(
-                            self.block(i - floor * 0.5, j - floor * 0.5, PIXELS, PIXELS, grass2, floor))
+                            Block(i - floor * 0.5, j - floor * 0.5, PIXELS, PIXELS, grass2, floor))
                     elif self.map[floor][i][j] == 4:
                         self.blocks.append(
-                            self.block(i - floor * 0.5, j - floor * 0.5, PIXELS, PIXELS, stone, floor))
+                            Block(i - floor * 0.5, j - floor * 0.5, PIXELS, PIXELS, stone, floor))
                     elif self.map[floor][i][j] == 5:
                         self.blocks.append(
-                            self.block(i - floor * 0.5, j - floor * 0.5, PIXELS, PIXELS, stone1, floor))
+                            Block(i - floor * 0.5, j - floor * 0.5, PIXELS, PIXELS, stone1, floor))
                     elif self.map[floor][i][j] == 6:
                         self.blocks.append(
-                            self.block(i - floor * 0.5, j - floor * 0.5, PIXELS, PIXELS, water, floor))
+                            Block(i - floor * 0.5, j - floor * 0.5, PIXELS, PIXELS, water, floor))
                     elif self.map[floor][i][j] == 7:
                         self.blocks.append(
-                            self.block(i - floor * 0.5, j - floor * 0.5, PIXELS, PIXELS, bush, floor))
+                            Block(i - floor * 0.5, j - floor * 0.5, PIXELS, PIXELS, bush, floor))
                     elif self.map[floor][i][j] == 8:
                         self.blocks.append(
-                            self.block(i - floor * 0.5, j - floor * 0.5, PIXELS, PIXELS, flower, floor))
+                            Block(i - floor * 0.5, j - floor * 0.5, PIXELS, PIXELS, flower, floor))
                     elif self.map[floor][i][j] == 9:
                         self.blocks.append(
-                            self.block(i - floor * 0.5, j - floor * 0.5, 180, 140, shop, floor, True))
+                            Block(i - floor * 0.5, j - floor * 0.5, 180, 140, shop, floor, True))
 
     def draw(self, player, enemies, shop_menu):
         # Vykreslení vrstvy bloků za hráčem
@@ -204,7 +135,7 @@ class AbstractMoveableObject:
         self.y = y
         self.width = width
         self.height = height
-        self.image = block
+        self.image = player_down1
         self.image = pygame.transform.scale(
             self.image, (self.width, self.height))
         self.rect = self.image.get_rect(topleft=(self.x, self.y))
@@ -927,7 +858,7 @@ class Shop(AbstractUtilities):
 
     def draw(self):
         screen.fill(GREY)
-        screen.blit(shop_roof, (50, -20))
+        screen.blit(shop_inside, (50, -20))
         self.draw_btn(WIDTH * 0.2+50, 300, 200, 300,
                       button_heal, (238, 70, 44), (255, 34, 0), 1, 'heal')
         self.draw_btn(WIDTH * 0.4+50, 300, 200, 300,
@@ -961,15 +892,24 @@ class MainMenu(AbstractUtilities):
     def __init__(self):
         super().__init__()
         self.main_menu = True
+        self.y = 0
+        self.dy = 1
+        self.vy = 0
 
     def draw(self):
         # self.draw_text("Welcome to my Iso Game", RED, 100, WIDTH/2, 100)
         # self.draw_text("Press space to start the game...",
         # GREEN, 70, WIDTH/2, 200)
-        screen.blit(thumbnail, (0, 0))
-        screen.blit(button_start, (500, 300))
+        screen.blit(thumbnail, (0, self.y))
+        screen.blit(button_start, (500, self.y+300))
 
     def update(self):
+        self.vy += self.dy
+        if self.vy > 2 or self.vy < -2:
+            self.dy *= -1
+        self.y += self.vy
+
+    def run(self):
         while self.main_menu:
             screen.fill(GREY)
             for event in pygame.event.get():
@@ -982,6 +922,8 @@ class MainMenu(AbstractUtilities):
                         self.main_menu = False
 
             self.draw()
+            self.update()
+
             pygame.display.update()
             clock.tick(15)
 
@@ -989,7 +931,7 @@ class MainMenu(AbstractUtilities):
 class Game():
     def __init__(self):
         # Vytvoreni mapy
-        self.iso_map = IsoMap(MAP, Block)
+        self.iso_map = IsoMap(MAP)
         self.iso_map.create_map()
 
         # Hlavni menu hry
@@ -1097,10 +1039,8 @@ class Game():
                     if event.key == pygame.K_r:
                         self.restart()
 
-            self.main_menu.update()
+            self.main_menu.run()
             self.update()
-
-            # print(self.player.rect.x, self.player.rect.y)
 
             pygame.display.update()
             clock.tick(FPS)
