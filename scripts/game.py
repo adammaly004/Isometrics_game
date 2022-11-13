@@ -7,7 +7,7 @@ from scripts.assets import *
 from scripts.items import Gun, Heal, Coin
 from scripts.particle import FireBall
 from scripts.map import IsoMap
-from scripts.utils import MainMenu, Shop, Timer, CoinSack, HealthBar, ObjectSpawner
+from scripts.utils import HeartBar, MainMenu, Shop, Timer, CoinSack, ObjectSpawner, Pause
 from scripts.moveable import Player, Enemy
 
 # Start pygame
@@ -23,6 +23,7 @@ class Game():
 
         # Hlavni menu hry
         self.main_menu = MainMenu()
+        self.pause = Pause(WIDTH-70, 5, button_pause)
 
         # Vytvorecni hrace
         self.player = Player(WIDTH / 2 + 5, HEIGHT / 2 -
@@ -32,7 +33,8 @@ class Game():
         self.shop_menu = Shop(self.player)
         self.coin_sack = CoinSack(WIDTH - 150, 20, 50, 50, coin_sack_img)
         self.timer = Timer(WIDTH / 2, HEIGHT - 50)
-        self.health_bar = HealthBar(50, 50, 100)
+        #self.health_bar = HealthBar(50, 50, 125)
+        self.heart_bar = HeartBar(125)
 
         # Vytvoreni listu pro objekty
         self.enemies = []
@@ -58,7 +60,10 @@ class Game():
         self.player.rect.x, self.player.rect.y = WIDTH / 2 + 5, HEIGHT / 2 - 10
         self.player.last_collistion = 2
 
-        self.player.health = 100
+        self.player.health = 125
+        for heart in self.heart_bar.hearts:
+            heart.heart_index = 0
+
         self.player.add_ammo = 2
         self.player.add_heal = 10
         self.player.coin_spawn = 1
@@ -72,11 +77,13 @@ class Game():
 
     def draw(self):
         self.iso_map.draw(self.player, self.enemies, self.shop_menu)
-        self.health_bar.draw(self.player.health)
+        # self.health_bar.draw(self.player.health)
         self.coin_sack.draw(self.player)
 
     def update(self):
         self.draw()
+
+        self.heart_bar.update(self.player.health)
 
         self.player.update()
         self.player.shoot(self.bullets)
@@ -111,6 +118,8 @@ class Game():
         if self.timer.timer >= 60 and self.timer.sec % 30 == 0:
             self.difficulty += 1
 
+        self.pause.update()
+
     def run(self):
         while True:
             SCREEN.fill(GREY)
@@ -121,12 +130,19 @@ class Game():
 
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
-                        self.main_menu.main_menu = True
+                        self.pause.pause = True
 
                     if event.key == pygame.K_r:
                         self.restart()
 
+                    if event.key == pygame.K_o:
+                        self.player.health += 1
+
+                    if event.key == pygame.K_p:
+                        self.player.health -= 1
+
             self.main_menu.run()
+            self.pause.run()
             self.update()
 
             pygame.display.update()

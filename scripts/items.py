@@ -129,10 +129,11 @@ class Heal(AbstractCollectableItem):
 
     def collision(self, player, collectable_items):
         if self.rect.colliderect(player.rect):
-            if player.health <= 100 - player.add_heal:
-                player.health += player.add_heal
+            if player.health <= 120 - player.add_heal:
+                player.health += (player.health % 5) + \
+                    1 + player.add_heal
             else:
-                player.health = 100
+                player.health = 125
             collectable_items.remove(self)
 
 

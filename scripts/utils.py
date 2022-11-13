@@ -1,3 +1,4 @@
+from turtle import width
 import pygame
 
 from scripts.constants import *
@@ -165,6 +166,7 @@ class MainMenu(AbstractUtilities):
         self.y = 0
         self.dy = 1
         self.vy = 0
+        self.rect = button_start.get_rect(topleft=(500, self.y+300))
 
     def draw(self):
         # self.draw_text("Welcome to my Iso Game", RED, 100, WIDTH/2, 100)
@@ -178,6 +180,9 @@ class MainMenu(AbstractUtilities):
         if self.vy > 2 or self.vy < -2:
             self.dy *= -1
         self.y += self.vy
+
+        if self.rect.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0]:
+            self.main_menu = False
 
     def run(self):
         while self.main_menu:
@@ -198,7 +203,42 @@ class MainMenu(AbstractUtilities):
             CLOCK.tick(15)
 
 
-class HealthBar:
+class Pause:
+    def __init__(self, x, y, image):
+        self.x = x
+        self.y = y
+        self.image = pygame.transform.scale(
+            image, (80, 80))
+        self.rect = self.image.get_rect(topleft=(self.x, self.y))
+        self.pause = False
+
+    def draw(self):
+        SCREEN.blit(self.image, self.rect)
+
+    def update(self):
+        self.draw()
+        if self.rect.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0]:
+            self.pause = True
+
+    def run(self):
+        while self.pause:
+            SCREEN.fill(GREY)
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    exit()
+
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                        self.pause = False
+
+            self.update()
+
+            pygame.display.update()
+            CLOCK.tick(15)
+
+
+"""class HealthBar:
     def __init__(self, x, y, max_health):
         self.x = x
         self.y = y
@@ -213,7 +253,53 @@ class HealthBar:
         pygame.draw.rect(SCREEN, BLACK, (self.x - 2, self.y - 2, 154, 24))
         pygame.draw.rect(SCREEN, RED, (self.x, self.y, 150, 20))
         pygame.draw.rect(SCREEN, GREEN,
-                         (self.x, self.y, 150 * ratio, 20))
+                         (self.x, self.y, 150 * ratio, 20))"""
+
+
+class Heart:
+    def __init__(self, x, y, width, height):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.heart_index = 0
+        self.hearts = [heart1, heart2, heart3, heart4, heart5]
+        self.image = pygame.transform.scale(
+            self.hearts[self.heart_index], (self.width, self.height))
+        self.rect = self.image.get_rect(topleft=(self.x, self.y))
+
+    def draw(self):
+        self.image = pygame.transform.scale(
+            self.hearts[self.heart_index], (self.width, self.height))
+        SCREEN.blit(self.image, self.rect)
+
+
+class HeartBar:
+    def __init__(self, max_health):
+        self.health = max_health
+        self.max_health = max_health
+        self.hearts = [Heart(30, 30, 30, 30), Heart(60, 30, 30, 30), Heart(
+            90, 30, 30, 30), Heart(120, 30, 30, 30), Heart(150, 30, 30, 30)]
+
+        self.health_index = 0
+
+    def draw(self):
+        for heart in self.hearts:
+            heart.draw()
+
+    def update(self, health):
+        self.draw()
+        if health > 0:
+            self.health_index = int(health / 25)
+            if self.health_index < 5:
+                index = int(((self.max_health - health-1) -
+                             (5 - self.health_index)*25) / 5)
+                if index == 0:
+                    index = -1
+                self.hearts[self.health_index].heart_index = index
+
+            for i in range(self.health_index):
+                self.hearts[i].heart_index = 0
 
 
 class ObjectSpawner:

@@ -68,6 +68,8 @@ button_exit = pygame.image.load(
     'assets/img/buttons/button_exit.png').convert_alpha()
 button_start = pygame.image.load(
     'assets/img/buttons/button_start.png').convert_alpha()
+button_pause = pygame.image.load(
+    'assets/img/buttons/button_pause.png').convert_alpha()
 
 shop_inside = pygame.image.load(
     'assets/img/shop/shop_inside.png').convert_alpha()
@@ -77,5 +79,11 @@ thumbnail = pygame.image.load('assets/img/game/main_menu.png').convert_alpha()
 
 border = pygame.image.load('assets/img/game/border.png').convert_alpha()
 
+heart1 = pygame.image.load('assets/img/heart/heart1.png').convert_alpha()
+heart2 = pygame.image.load('assets/img/heart/heart2.png').convert_alpha()
+heart3 = pygame.image.load('assets/img/heart/heart3.png').convert_alpha()
+heart4 = pygame.image.load('assets/img/heart/heart4.png').convert_alpha()
+heart5 = pygame.image.load('assets/img/heart/heart5.png').convert_alpha()
+
 # Load fonts
-font_type = 'assets/Pixeltype.ttf'
+font_type = 'assets/font/Pixeltype.ttf'

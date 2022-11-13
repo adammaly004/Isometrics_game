@@ -92,13 +92,13 @@ class Player(AbstractMoveableObject):
         self.shoot_cooldown = 0
         self.ammo = 0
 
-        self.health = 100
+        self.health = 125
 
         self.coins = 0
 
         # Vylepseni
         self.add_ammo = 2
-        self.add_heal = 10
+        self.add_heal = 0
         self.coin_spawn = 1
 
         # Herni prostor
