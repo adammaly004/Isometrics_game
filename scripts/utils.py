@@ -1,4 +1,3 @@
-from turtle import width
 import pygame
 
 from scripts.constants import *
@@ -6,41 +5,6 @@ from scripts.assets import *
 
 
 class AbstractUtilities:
-    def draw_button(self, x, y, width, height, color, price, type):
-        rect = pygame.Rect(x - width/2, y, width, height)
-        pygame.draw.rect(SCREEN, YELLOW, rect)
-        pygame.draw.rect(SCREEN, color, rect, 10)
-
-        if rect.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0] and price <= self.player.coins:
-            self.player.coins -= price
-            if type == 'heal':
-                self.player.add_heal += 5
-            elif type == 'gun':
-                self.player.add_ammo += 1
-            elif type == 'coin':
-                self.player.coin_spawn += 1
-
-    def draw_btn(self, x, y, width, height, image, color, color_active, price, type):
-        COLOR = color
-        image = pygame.transform.scale(
-            image, (width, height))
-        rect = image.get_rect(topleft=(x, y))
-
-        if rect.collidepoint(pygame.mouse.get_pos()):
-            color = color_active
-            if pygame.mouse.get_pressed()[0] and price <= self.player.coins:
-                self.player.coins -= price
-                if type == 'heal':
-                    self.player.add_heal += 5
-                elif type == 'gun':
-                    self.player.add_ammo += 1
-                elif type == 'coin':
-                    self.player.coin_spawn += 1
-        else:
-            color = COLOR
-        pygame.draw.rect(SCREEN, color, rect)
-        SCREEN.blit(image, rect)
-
     def draw_text(self, text, color, size, x, y):
         font = pygame.font.Font(font_type, size)
         text = font.render(str(text), False, color)
@@ -93,11 +57,13 @@ class Timer(AbstractUtilities):
 
     def draw_final(self):
         minutes, seconds = divmod(self.sec, 60)
-
+        if len(str(seconds)) < 2:
+            seconds = "0" + str(seconds)
         self.draw_text(f"{minutes}:{seconds}",
                        BLUE, 200, WIDTH/2, 200)
 
     def update(self):
+        self.draw_text("@Adam", BLACK, 50, WIDTH-70, HEIGHT - 20)
         if self.timer >= 60:
             self.timer = 0
             self.sec += 1
@@ -112,12 +78,9 @@ class Shop(AbstractUtilities):
         self.player = player
         self.coin_sack = CoinSack(WIDTH - 150, 20, 50, 50, coin_sack_img)
         self.pause = False
+        self.price = 0
 
     def exit(self):
-        """rect = pygame.Rect(10, 10, 100, 50)
-        pygame.draw.rect(SCREEN, RED, rect)
-        pygame.draw.rect(SCREEN, BLACK, rect, 10)
-        self.draw_text("Exit", GREEN, 50, 60, 40)"""
         rect = button_exit.get_rect(topleft=(10, 10))
         SCREEN.blit(button_exit, rect)
 
@@ -126,6 +89,30 @@ class Shop(AbstractUtilities):
             self.player.rect.x = 614
             self.player.rect.y = 182
             self.pause = False
+
+    def draw_btn(self, x, y, width, height, image, color, color_active, price, type):
+        COLOR = color
+        image = pygame.transform.scale(
+            image, (width, height))
+        rect = image.get_rect(topleft=(x, y))
+
+        if rect.collidepoint(pygame.mouse.get_pos()):
+            color = color_active
+            if pygame.mouse.get_pressed()[0] and price + self.price <= self.player.coins:
+                self.player.coins -= price + self.price
+                self.price += price
+                if type == 'heal':
+                    self.player.add_heal += 5
+                elif type == 'gun':
+                    self.player.add_ammo += 1
+                elif type == 'coin':
+                    self.player.coin_spawn += 1
+        else:
+            color = COLOR
+
+        self.draw_text(f'{self.price + price}', RED, 20, x, y)
+        pygame.draw.rect(SCREEN, color, rect)
+        SCREEN.blit(image, rect)
 
     def draw(self):
         SCREEN.fill(GREY)
@@ -138,6 +125,7 @@ class Shop(AbstractUtilities):
                       button_coin, (255, 168, 0), (255, 214, 0), 3, 'coin')
         self.exit()
         self.coin_sack.draw(self.player)
+        self.draw_text("@Adam", BLACK, 50, WIDTH-70, HEIGHT - 20)
 
     def update(self):
         while self.pause:
@@ -147,7 +135,7 @@ class Shop(AbstractUtilities):
                     exit()
 
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_p:
+                    if event.key == pygame.K_ESCAPE:
                         self.player.step_index = 20
                         self.player.rect.x = 614
                         self.player.rect.y = 182
@@ -169,9 +157,7 @@ class MainMenu(AbstractUtilities):
         self.rect = button_start.get_rect(topleft=(500, self.y+300))
 
     def draw(self):
-        # self.draw_text("Welcome to my Iso Game", RED, 100, WIDTH/2, 100)
-        # self.draw_text("Press space to start the game...",
-        # GREEN, 70, WIDTH/2, 200)
+        self.draw_text("@Adam", BLACK, 50, WIDTH-70, HEIGHT - 20)
         SCREEN.blit(thumbnail, (0, self.y))
         SCREEN.blit(button_start, (500, self.y+300))
 
@@ -203,8 +189,9 @@ class MainMenu(AbstractUtilities):
             CLOCK.tick(15)
 
 
-class Pause:
+class Pause(AbstractUtilities):
     def __init__(self, x, y, image):
+        super().__init__()
         self.x = x
         self.y = y
         self.image = pygame.transform.scale(
@@ -213,6 +200,7 @@ class Pause:
         self.pause = False
 
     def draw(self):
+        self.draw_text("@Adam", BLACK, 50, WIDTH-70, HEIGHT - 20)
         SCREEN.blit(self.image, self.rect)
 
     def update(self):
@@ -236,24 +224,6 @@ class Pause:
 
             pygame.display.update()
             CLOCK.tick(15)
-
-
-"""class HealthBar:
-    def __init__(self, x, y, max_health):
-        self.x = x
-        self.y = y
-        self.health = max_health
-        self.max_health = max_health
-
-    def draw(self, health):
-        self.health = health
-        ratio = self.health / self.max_health
-        if ratio < 0:
-            ratio = 0
-        pygame.draw.rect(SCREEN, BLACK, (self.x - 2, self.y - 2, 154, 24))
-        pygame.draw.rect(SCREEN, RED, (self.x, self.y, 150, 20))
-        pygame.draw.rect(SCREEN, GREEN,
-                         (self.x, self.y, 150 * ratio, 20))"""
 
 
 class Heart:

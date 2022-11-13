@@ -59,7 +59,7 @@ coin_sack_img = pygame.image.load(
     'assets/img/items/coin_sack.png').convert_alpha()
 
 button_heal = pygame.image.load(
-    'assets/img/buttons/button_heal1.png').convert_alpha()
+    'assets/img/buttons/button_heal.png').convert_alpha()
 button_gun = pygame.image.load(
     'assets/img/buttons/button_gun.png').convert_alpha()
 button_coin = pygame.image.load(
@@ -87,3 +87,8 @@ heart5 = pygame.image.load('assets/img/heart/heart5.png').convert_alpha()
 
 # Load fonts
 font_type = 'assets/font/Pixeltype.ttf'
+
+# Load music
+bg_music = pygame.mixer.Sound('assets/music/theme.wav')
+item_music = pygame.mixer.Sound('assets/music/item_collect.wav')
+fireball_music = pygame.mixer.Sound('assets/music/fireball.wav')

@@ -2,6 +2,7 @@ import pygame
 from random import randint, choice
 
 from scripts.constants import *
+from scripts.assets import fireball_music
 
 
 class Particle:
@@ -53,14 +54,11 @@ class FireBall(Particle):
             self.target_y = player.rect.centery + randint(-1, 1) * PIXELS
             self.timer += 1
 
-        # else:
-            # pygame.draw.circle(SCREEN, RED, (self.target_x, self.target_y), 10)
+        directionx = (self.target_x - self.x)
+        directiony = (self.target_y - self.y)
 
-        self.directionx = (self.target_x - self.x)
-        self.directiony = (self.target_y - self.y)
-
-        self.x += 8 if self.directionx >= 0 else -8
-        self.y += 4 if self.directiony >= 0 else -4
+        self.x += 8 if directionx >= 0 else -8
+        self.y += 4 if directiony >= 0 else -4
 
         self.add_particles(self.x, self.y)
 

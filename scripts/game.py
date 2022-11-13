@@ -33,7 +33,7 @@ class Game():
         self.shop_menu = Shop(self.player)
         self.coin_sack = CoinSack(WIDTH - 150, 20, 50, 50, coin_sack_img)
         self.timer = Timer(WIDTH / 2, HEIGHT - 50)
-        #self.health_bar = HealthBar(50, 50, 125)
+        # self.health_bar = HealthBar(50, 50, 125)
         self.heart_bar = HeartBar(125)
 
         # Vytvoreni listu pro objekty
@@ -64,8 +64,9 @@ class Game():
         for heart in self.heart_bar.hearts:
             heart.heart_index = 0
 
+        self.shop_menu.price = 0
         self.player.add_ammo = 2
-        self.player.add_heal = 10
+        self.player.add_heal = 5
         self.player.coin_spawn = 1
         self.player.ammo = 0
         self.player.coins = 0
@@ -121,6 +122,7 @@ class Game():
         self.pause.update()
 
     def run(self):
+        bg_music.play(loops=-1)
         while True:
             SCREEN.fill(GREY)
             for event in pygame.event.get():

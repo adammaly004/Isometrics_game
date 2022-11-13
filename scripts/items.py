@@ -106,6 +106,7 @@ class Gun(AbstractCollectableItem):
 
     def collision(self, player, guns):
         if self.rect.colliderect(player.rect):
+
             self.rect.x = player.rect.centerx - \
                 20 if self.last_direction == 'down' else player.rect.centerx
             self.rect.y = player.rect.centery
@@ -113,6 +114,7 @@ class Gun(AbstractCollectableItem):
             self.animation(player)
 
             if self.first:
+                item_music.play()
                 self.on_player = True
                 player.ammo = player.add_ammo
                 player.armed = True
@@ -129,6 +131,7 @@ class Heal(AbstractCollectableItem):
 
     def collision(self, player, collectable_items):
         if self.rect.colliderect(player.rect):
+            item_music.play()
             if player.health <= 120 - player.add_heal:
                 player.health += (player.health % 5) + \
                     1 + player.add_heal
@@ -158,5 +161,6 @@ class Coin(AbstractCollectableItem):
     def collision(self, player, coins):
         self.animation()
         if self.rect.colliderect(player.rect):
+            item_music.play()
             coins.remove(self)
-            player.coins += 1
+            player.coins += player.coin_spawn

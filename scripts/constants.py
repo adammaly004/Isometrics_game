@@ -1,7 +1,7 @@
 import pygame
 
 WIDTH, HEIGHT = 1280, 640
-NAME = "ISO METRICS"
+NAME = "SquareLand Survival"
 NUMBER_OF_BLOCKS = 20
 PIXELS = 64
 
