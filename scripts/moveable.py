@@ -136,6 +136,8 @@ class Player(AbstractMoveableObject):
             self.rect.x += self.speedx
             self.rect.y += self.speedy
 
+        #print(self.rect.x, self.rect.y)
+
         self.image = pygame.transform.scale(
             self.image, (self.width, self.height))
 
@@ -278,6 +280,7 @@ class Enemy(AbstractMoveableObject):
         if self.rect.colliderect(bullet.rect):
             self.enemy_alive = False
             self.enemy_index = 0
+            shot_music.play()
             if bullet in bullets:
                 bullets.remove(bullet)
             # enemies.remove(self)

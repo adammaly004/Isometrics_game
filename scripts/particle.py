@@ -2,7 +2,6 @@ import pygame
 from random import randint, choice
 
 from scripts.constants import *
-from scripts.assets import fireball_music
 
 
 class Particle:
@@ -16,8 +15,6 @@ class Particle:
                 particle[0][1] += particle[2][0]
                 particle[0][0] += particle[2][1]
                 particle[1] -= subtraction
-                # pygame.draw.circle(SCREEN, choice([WHITE, ORANGE]),
-                # particle[0], int(particle[1]))
                 rect = pygame.Rect(
                     particle[0][0], particle[0][1], int(particle[1]), int(particle[1]))
                 pygame.draw.rect(SCREEN, choice(colors), rect)

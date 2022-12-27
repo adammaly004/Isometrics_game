@@ -102,6 +102,7 @@ class IsoMap:
                 layer2.draw()
 
                 # Kolize s obchodem a nasledný vstup do obchodu
+                # and layer2.floor == player.last_collistion + 1:
                 if layer2.action and player.rect.colliderect(layer2.collide_point) and layer2.floor == player.last_collistion + 1:
                     shop_menu.pause = True
                     shop_menu.update()

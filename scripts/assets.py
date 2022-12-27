@@ -70,6 +70,11 @@ button_start = pygame.image.load(
     'assets/img/buttons/button_start.png').convert_alpha()
 button_pause = pygame.image.load(
     'assets/img/buttons/button_pause.png').convert_alpha()
+button_restart = pygame.image.load(
+    'assets/img/buttons/button_restart.png').convert_alpha()
+button_resume = pygame.image.load(
+    'assets/img/buttons/button_resume.png').convert_alpha()
+
 
 shop_inside = pygame.image.load(
     'assets/img/shop/shop_inside.png').convert_alpha()
@@ -92,3 +97,4 @@ font_type = 'assets/font/Pixeltype.ttf'
 bg_music = pygame.mixer.Sound('assets/music/theme.wav')
 item_music = pygame.mixer.Sound('assets/music/item_collect.wav')
 fireball_music = pygame.mixer.Sound('assets/music/fireball.wav')
+shot_music = pygame.mixer.Sound('assets/music/shot.wav')

@@ -79,6 +79,7 @@ class Shop(AbstractUtilities):
         self.coin_sack = CoinSack(WIDTH - 150, 20, 50, 50, coin_sack_img)
         self.pause = False
         self.price = 0
+        self.delay = 0
 
     def exit(self):
         rect = button_exit.get_rect(topleft=(10, 10))
@@ -96,23 +97,29 @@ class Shop(AbstractUtilities):
             image, (width, height))
         rect = image.get_rect(topleft=(x, y))
 
-        if rect.collidepoint(pygame.mouse.get_pos()):
+        if self.delay <= 1:
+            self.delay += 1
+
+        if rect.collidepoint(pygame.mouse.get_pos()) and self.delay > 1:
             color = color_active
             if pygame.mouse.get_pressed()[0] and price + self.price <= self.player.coins:
                 self.player.coins -= price + self.price
                 self.price += price
+                self.delay = 0
                 if type == 'heal':
                     self.player.add_heal += 5
                 elif type == 'gun':
                     self.player.add_ammo += 1
                 elif type == 'coin':
                     self.player.coin_spawn += 1
+
         else:
             color = COLOR
 
-        self.draw_text(f'{self.price + price}', RED, 20, x, y)
         pygame.draw.rect(SCREEN, color, rect)
         SCREEN.blit(image, rect)
+        self.draw_text(f'price: {self.price + price}', YELLOW,
+                       30, x + width/2, y + height-30)
 
     def draw(self):
         SCREEN.fill(GREY)
@@ -137,8 +144,8 @@ class Shop(AbstractUtilities):
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         self.player.step_index = 20
-                        self.player.rect.x = 614
-                        self.player.rect.y = 182
+                        self.player.rect.x = 611
+                        self.player.rect.y = 70
                         self.pause = False
 
             self.draw()
@@ -198,17 +205,39 @@ class Pause(AbstractUtilities):
             image, (80, 80))
         self.rect = self.image.get_rect(topleft=(self.x, self.y))
         self.pause = False
+        self.delay = 0
+
+        self.resume_image = pygame.transform.scale(
+            button_resume, (300, 110))
+        self.resume_rect = self.resume_image.get_rect(center=(WIDTH/2, 230))
+
+        self.restart_image = pygame.transform.scale(
+            button_restart, (300, 110))
+        self.restart_rect = self.restart_image.get_rect(center=(WIDTH/2, 350))
 
     def draw(self):
         self.draw_text("@Adam", BLACK, 50, WIDTH-70, HEIGHT - 20)
         SCREEN.blit(self.image, self.rect)
 
-    def update(self):
+    def update(self, restart):
         self.draw()
-        if self.rect.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0]:
-            self.pause = True
 
-    def run(self):
+        if self.delay <= 1:
+            self.delay += 1
+        if self.rect.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0] and self.delay > 1:
+            self.pause = not self.pause
+            self.delay = 0
+
+        if self.pause:
+            if self.resume_rect.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0] and self.delay > 1:
+                self.pause = not self.pause
+                self.delay = 0
+            if self.restart_rect.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0] and self.delay > 1:
+                restart()
+                self.pause = not self.pause
+                self.delay = 0
+
+    def run(self, restart):
         while self.pause:
             SCREEN.fill(GREY)
             for event in pygame.event.get():
@@ -220,7 +249,9 @@ class Pause(AbstractUtilities):
                     if event.key == pygame.K_SPACE:
                         self.pause = False
 
-            self.update()
+            self.update(restart)
+            SCREEN.blit(self.resume_image, self.resume_rect)
+            SCREEN.blit(self.restart_image, self.restart_rect)
 
             pygame.display.update()
             CLOCK.tick(15)

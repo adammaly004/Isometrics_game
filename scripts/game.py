@@ -69,6 +69,7 @@ class Game():
         self.player.add_heal = 5
         self.player.coin_spawn = 1
         self.player.ammo = 0
+        self.player.armed = False
         self.player.coins = 0
         self.player.image = pygame.transform.scale(
             self.player.player_walk_down[int(self.player.player_index)], (self.player.width, self.player.height))
@@ -78,7 +79,6 @@ class Game():
 
     def draw(self):
         self.iso_map.draw(self.player, self.enemies, self.shop_menu)
-        # self.health_bar.draw(self.player.health)
         self.coin_sack.draw(self.player)
 
     def update(self):
@@ -97,7 +97,8 @@ class Game():
             [Gun(0, 0, PIXELS - 37, PIXELS - 45, gun), Heal(0, 0, PIXELS - 40, PIXELS - 35, heal), Coin(0, 0, PIXELS - 20, PIXELS - 30, [coin_1, coin_2, coin_3, coin_4, coin_5, coin_6])]))
 
         if len(self.enemies) < self.difficulty:
-            self.enemy_spawner.spawn(Enemy(choice([WIDTH / 2, 0, WIDTH]), choice([0, HEIGHT]),
+            pos = choice([[611, 582], [613, -58], [1219, 278], [-1, 280]])
+            self.enemy_spawner.spawn(Enemy(pos[0], pos[1],
                                            PIXELS - 12, PIXELS - 8, self.player))
 
         for bullet in self.bullets:
@@ -119,10 +120,10 @@ class Game():
         if self.timer.timer >= 60 and self.timer.sec % 30 == 0:
             self.difficulty += 1
 
-        self.pause.update()
+        self.pause.update(self.restart)
 
     def run(self):
-        bg_music.play(loops=-1)
+        # bg_music.play(loops=-1)
         while True:
             SCREEN.fill(GREY)
             for event in pygame.event.get():
@@ -137,14 +138,8 @@ class Game():
                     if event.key == pygame.K_r:
                         self.restart()
 
-                    if event.key == pygame.K_o:
-                        self.player.health += 1
-
-                    if event.key == pygame.K_p:
-                        self.player.health -= 1
-
             self.main_menu.run()
-            self.pause.run()
+            self.pause.run(self.restart)
             self.update()
 
             pygame.display.update()
