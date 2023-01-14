@@ -6,7 +6,7 @@ from scripts.assets import *
 
 
 class Block:
-    def __init__(self, x, y, width, height, image, floor, action=False):
+    def __init__(self, x, y, width, height, image, floor, action=''):
         self.x = x
         self.y = y
         self.width = 64
@@ -73,24 +73,25 @@ class IsoMap:
                             Block(i - floor * 0.5, j - floor * 0.5, PIXELS, PIXELS, water, floor))
                     elif self.map[floor][i][j] == 7:
                         self.blocks.append(
-                            Block(i - floor * 0.5, j - floor * 0.5, PIXELS, PIXELS, bush, floor))
+                            Block(i - floor * 0.5, j - floor * 0.5, PIXELS, PIXELS, bush, floor, 'plant'))
                     elif self.map[floor][i][j] == 8:
                         self.blocks.append(
-                            Block(i - floor * 0.5, j - floor * 0.5, PIXELS, PIXELS, flower, floor))
+                            Block(i - floor * 0.5, j - floor * 0.5, PIXELS, PIXELS, flower, floor, 'plant'))
                     elif self.map[floor][i][j] == 9:
                         self.blocks.append(
-                            Block(i - floor * 0.5, j - floor * 0.5, 180, 140, shop, floor, True))
+                            Block(i - floor * 0.5, j - floor * 0.5, 180, 140, shop, floor, 'shop'))
 
     def draw(self, player, enemies, shop_menu):
         # Vykreslení vrstvy bloků za hráčem
         for layer1 in self.blocks:
             layer1.draw()
             # Kolize hráče s bloky
-            player.collision(layer1)
+            if layer1.action != 'plant':
+                player.collision(layer1)
 
             # Kolize nepřítele s bloky
-            for enemy in enemies:
-                enemy.collision(layer1)
+                for enemy in enemies:
+                    enemy.collision(layer1)
 
         # Vykreslení hráče
         player.draw()
@@ -102,8 +103,7 @@ class IsoMap:
                 layer2.draw()
 
                 # Kolize s obchodem a nasledný vstup do obchodu
-                # and layer2.floor == player.last_collistion + 1:
-                if layer2.action and player.rect.colliderect(layer2.collide_point) and layer2.floor == player.last_collistion + 1:
+                if layer2.action == 'shop' and player.rect.colliderect(layer2.collide_point) and layer2.floor == player.last_collistion + 1:
                     shop_menu.pause = True
                     shop_menu.update()
 

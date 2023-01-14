@@ -26,8 +26,7 @@ class Game():
         self.pause = Pause(WIDTH-70, 5, button_pause)
 
         # Vytvorecni hrace
-        self.player = Player(WIDTH / 2 + 5, HEIGHT / 2 -
-                             10, PIXELS - 12, PIXELS - 8)
+        self.player = Player(1091, 310, PIXELS - 12, PIXELS - 8)
 
         # Vytvoreni pomocnych ukazatelu
         self.shop_menu = Shop(self.player)
@@ -57,8 +56,8 @@ class Game():
         self.bullets.clear()
 
         # Resotovani pozice hrace
-        self.player.rect.x, self.player.rect.y = WIDTH / 2 + 5, HEIGHT / 2 - 10
-        self.player.last_collistion = 2
+        self.player.rect.x, self.player.rect.y = 1091, 310
+        self.player.last_collistion = 0
 
         self.player.health = 125
         for heart in self.heart_bar.hearts:
@@ -75,7 +74,7 @@ class Game():
             self.player.player_walk_down[int(self.player.player_index)], (self.player.width, self.player.height))
 
         # Resetovani casomiry
-        self.timer.sec = 0
+        self.timer.score = 0
 
     def draw(self):
         self.iso_map.draw(self.player, self.enemies, self.shop_menu)
@@ -104,7 +103,8 @@ class Game():
         for bullet in self.bullets:
             bullet.update(self.player.direction)
             for enemy in self.enemies:
-                enemy.bullet_collision(bullet, self.bullets)
+                if enemy.bullet_collision(bullet, self.bullets):
+                    self.timer.score += 1000
 
         self.fireball_spawner.spawn(FireBall(-100, -100))
         for fireball in self.fireballs:
@@ -117,8 +117,13 @@ class Game():
         else:
             self.timer.draw_final()
 
-        if self.timer.timer >= 60 and self.timer.sec % 30 == 0:
-            self.difficulty += 1
+        if len(str(self.timer.score)[:-3]) == 0:
+            self.difficulty = 3
+        else:
+            self.difficulty = int(str(self.timer.score)[:-3])
+
+        # if self.timer.score > 1000:
+            #self.difficulty += 1
 
         self.pause.update(self.restart)
 

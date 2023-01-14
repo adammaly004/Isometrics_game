@@ -9,10 +9,6 @@ class CreateMap:
         self.size = size
         self.count = count
         self.grid = self.make_map()
-        # print(self.grid)
-        # self.grid = [[1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1], [1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0], [1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1], [0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 1], [1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1], [0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1], [0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1], [1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0], [1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1], [1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0], [
-        # 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0], [1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1], [1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1], [0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0], [0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0], [1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1], [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1], [0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1], [0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1], [1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1]]
-
         self.map = []
 
     def make_map(self):
@@ -60,8 +56,13 @@ class CreateMap:
         else:
             for i in range(len(grid)):
                 for j in range(len(grid[i])):
-                    if i < 6 and j < 6:
-                        grid[i][j] = 0
+                    chance = random.randint(0, 10)
+                    if grid[i][j] == 0 and chance == 10:
+                        grid[i][j] = random.choice([7, 8])
+
+                    if i < 6 and j > 15:
+                        grid[j][i] = 0
+
                     if i == 0 or i == 1:
                         grid[i][j] = 0
 
@@ -74,11 +75,11 @@ class CreateMap:
                     elif j == len(grid[i])-1 or j == len(grid[i])-2:
                         grid[i][j] = 0
 
-        grid[0][0] = 9
+        grid[-5][0] = 9
 
         return grid
 
-    def new_floor(self, grid, floor=None):
+    def new_floor(self, grid):
         first = True
         first1 = True
         for i in range(len(grid)):
@@ -132,16 +133,11 @@ class CreateMap:
         return grid
 
     def create(self):
-        map = []
         floor1 = self.first_floor()
         old = self.apply_automation(self.grid)
         floor2 = copy.deepcopy(old)
-        old2 = self.new_floor(old, 1)
+        old2 = self.new_floor(old)
         floor3 = copy.deepcopy(old2)
         floor4 = self.new_floor(old2)
 
-        map.append(floor1)
-        map.append(floor2)
-        map.append(floor3)
-        map.append(floor4)
-        return map
+        return [floor1, floor2, floor3, floor4]

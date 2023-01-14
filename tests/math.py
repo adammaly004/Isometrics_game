@@ -1,9 +1,9 @@
-from math import sqrt
-i = 1
-while True:
-    D = i * i * 2
-    if type(sqrt(D)) == int:
-        print(i)
-        break
+score = 5100
+score = str(score)
 
-    i += 1
+s = score[:-3]
+if len(s) == 0:
+    s = 0
+    print(s)
+else:
+    print(int(s))

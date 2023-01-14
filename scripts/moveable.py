@@ -15,7 +15,7 @@ class AbstractMoveableObject:
         self.image = pygame.transform.scale(
             self.image, (self.width, self.height))
         self.rect = self.image.get_rect(topleft=(self.x, self.y))
-        self.last_collistion = 2
+        self.last_collistion = 0
         self.collide_point = pygame.Rect(
             self.rect.centerx, self.rect.centery - 20, 2, 40)
 
@@ -278,12 +278,16 @@ class Enemy(AbstractMoveableObject):
 
     def bullet_collision(self, bullet, bullets):
         if self.rect.colliderect(bullet.rect):
+
             self.enemy_alive = False
             self.enemy_index = 0
             shot_music.play()
             if bullet in bullets:
                 bullets.remove(bullet)
-            # enemies.remove(self)
+
+            return True
+        return False
+        # enemies.remove(self)
 
     def animation(self, enemies):
 

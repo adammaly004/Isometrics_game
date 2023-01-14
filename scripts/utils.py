@@ -5,10 +5,13 @@ from scripts.assets import *
 
 
 class AbstractUtilities:
-    def draw_text(self, text, color, size, x, y):
+    def draw_text(self, text, color, size, x, y, center=True):
         font = pygame.font.Font(font_type, size)
         text = font.render(str(text), False, color)
-        text_rect = text.get_rect(center=(x, y))
+        if center:
+            text_rect = text.get_rect(center=(x, y))
+        else:
+            text_rect = text.get_rect(topleft=(x, y))
         SCREEN.blit(text, text_rect)
 
     def draw_image_button(self, x, y, width, image):
@@ -45,8 +48,9 @@ class Timer(AbstractUtilities):
         self.y = y
         self.timer = 0
         self.sec = 0
+        self.score = 0
 
-    def draw(self):
+    """def draw(self):
         minutes, seconds = divmod(self.sec, 60)
 
         if len(str(seconds)) < 2:
@@ -61,12 +65,29 @@ class Timer(AbstractUtilities):
             seconds = "0" + str(seconds)
         self.draw_text(f"{minutes}:{seconds}",
                        BLUE, 200, WIDTH/2, 200)
-
     def update(self):
         self.draw_text("@Adam", BLACK, 50, WIDTH-70, HEIGHT - 20)
         if self.timer >= 60:
             self.timer = 0
             self.sec += 1
+
+        self.timer += 1
+        self.draw()"""
+
+    def draw(self):
+        #score = self.sec * 10
+        self.draw_text(f"{self.score}",
+                       BLUE, 50, self.x, self.y)
+
+    def draw_final(self):
+        #score = self.sec * 10
+        self.draw_text(f"{self.score}",
+                       BLUE, 200, WIDTH/2, 200)
+
+    def update(self):
+        if self.timer >= 10:
+            self.timer = 0
+            self.score += 5
 
         self.timer += 1
         self.draw()
@@ -87,8 +108,8 @@ class Shop(AbstractUtilities):
 
         if rect.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0]:
             self.player.step_index = 20
-            self.player.rect.x = 614
-            self.player.rect.y = 182
+            self.player.rect.x = 1091
+            self.player.rect.y = 310
             self.pause = False
 
     def draw_btn(self, x, y, width, height, image, color, color_active, price, type):
@@ -144,8 +165,8 @@ class Shop(AbstractUtilities):
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         self.player.step_index = 20
-                        self.player.rect.x = 611
-                        self.player.rect.y = 70
+                        self.player.rect.x = 1091
+                        self.player.rect.y = 310
                         self.pause = False
 
             self.draw()
@@ -158,24 +179,49 @@ class MainMenu(AbstractUtilities):
     def __init__(self):
         super().__init__()
         self.main_menu = True
+        self.hint_menu = False
         self.y = 0
         self.dy = 1
         self.vy = 0
-        self.rect = button_start.get_rect(topleft=(500, self.y+300))
+        self.rect_start = button_start.get_rect(topleft=(500, self.y+300))
+        self.rect_hint = pygame.transform.scale(
+            button_hint, (150, 50)).get_rect(topleft=(565, self.y+400))
+        self.rect_exit = button_exit.get_rect(topleft=(10, 10))
 
     def draw(self):
-        self.draw_text("@Adam", BLACK, 50, WIDTH-70, HEIGHT - 20)
-        SCREEN.blit(thumbnail, (0, self.y))
-        SCREEN.blit(button_start, (500, self.y+300))
+        if self.main_menu and not self.hint_menu:
+            self.draw_text("@Adam", BLACK, 50, WIDTH-70, HEIGHT - 20)
+            SCREEN.blit(thumbnail, (0, self.y))
+            SCREEN.blit(button_start, (500, self.y+300))
+            SCREEN.blit(pygame.transform.scale(
+                button_hint, (150, 50)), (565, self.y+410))
+
+        elif self.hint_menu:
+            SCREEN.blit(button_exit, self.rect_exit)
+            SCREEN.blit(hint_frame, (300, 80))
+            """self.draw_text("w           up", BLACK, 50, 200, 100, False)
+            self.draw_text("s           down", BLACK, 50, 200, 150, False)
+            self.draw_text("a           left", BLACK, 50, 200, 200, False)
+            self.draw_text("d           right", BLACK, 50, 200, 250, False)"""
+
+            self.draw_text("@Adam", BLACK, 50, WIDTH-70, HEIGHT - 20)
 
     def update(self):
+
         self.vy += self.dy
         if self.vy > 2 or self.vy < -2:
             self.dy *= -1
         self.y += self.vy
 
-        if self.rect.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0]:
+        if self.rect_start.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0]:
             self.main_menu = False
+
+        if self.rect_hint.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0]:
+
+            self.hint_menu = True
+
+        if self.rect_exit.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0] and self.hint_menu == True:
+            self.hint_menu = False
 
     def run(self):
         while self.main_menu:
@@ -222,9 +268,9 @@ class Pause(AbstractUtilities):
     def update(self, restart):
         self.draw()
 
-        if self.delay <= 1:
+        if self.delay <= 3:
             self.delay += 1
-        if self.rect.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0] and self.delay > 1:
+        if self.rect.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0] and self.delay > 3:
             self.pause = not self.pause
             self.delay = 0
 
@@ -246,7 +292,7 @@ class Pause(AbstractUtilities):
                     exit()
 
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_SPACE:
+                    if event.key == pygame.K_ESCAPE:
                         self.pause = False
 
             self.update(restart)

@@ -74,6 +74,8 @@ button_restart = pygame.image.load(
     'assets/img/buttons/button_restart.png').convert_alpha()
 button_resume = pygame.image.load(
     'assets/img/buttons/button_resume.png').convert_alpha()
+button_hint = pygame.image.load(
+    'assets/img/buttons/button_hint.png').convert_alpha()
 
 
 shop_inside = pygame.image.load(
@@ -81,6 +83,7 @@ shop_inside = pygame.image.load(
 shop = pygame.image.load('assets/img/shop/shop.png').convert_alpha()
 
 thumbnail = pygame.image.load('assets/img/game/main_menu.png').convert_alpha()
+hint_frame = pygame.image.load('assets/img/game/hint_menu_frame.png')
 
 border = pygame.image.load('assets/img/game/border.png').convert_alpha()
 
