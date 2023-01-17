@@ -86,42 +86,44 @@ class Game():
         self.heart_bar.update(self.player.health)
 
         self.player.update()
-        self.player.shoot(self.bullets)
-
-        for item in self.collectable_items:
-            item.update(self.player, self.collectable_items)
-
-        # Spawn Guns
-        self.object_spawner.spawn(choice(
-            [Gun(0, 0, PIXELS - 37, PIXELS - 45, gun), Heal(0, 0, PIXELS - 40, PIXELS - 35, heal), Coin(0, 0, PIXELS - 20, PIXELS - 30, [coin_1, coin_2, coin_3, coin_4, coin_5, coin_6])]))
-
-        if len(self.enemies) < self.difficulty:
-            pos = choice([[611, 582], [613, -58], [1219, 278], [-1, 280]])
-            self.enemy_spawner.spawn(Enemy(pos[0], pos[1],
-                                           PIXELS - 12, PIXELS - 8, self.player))
-
-        for bullet in self.bullets:
-            bullet.update(self.player.direction)
-            for enemy in self.enemies:
-                if enemy.bullet_collision(bullet, self.bullets):
-                    self.timer.score += 1000
-
-        self.fireball_spawner.spawn(FireBall(-100, -100))
-        for fireball in self.fireballs:
-            fireball.update(self.player)
-            self.player.collision_fireball(fireball)
-            self.fireball_spawner.delete(10 * FPS)
 
         if self.player.health > 0:
-            self.timer.update()
+            self.player.shoot(self.bullets)
+
+            for item in self.collectable_items:
+                item.update(self.player, self.collectable_items)
+
+            # Spawn Guns
+            self.object_spawner.spawn(choice(
+                [Gun(0, 0, PIXELS - 37, PIXELS - 45, gun), Heal(0, 0, PIXELS - 40, PIXELS - 35, heal), Coin(0, 0, PIXELS - 20, PIXELS - 30, [coin_1, coin_2, coin_3, coin_4, coin_5, coin_6])]))
+
+            if len(self.enemies) < self.difficulty:
+                pos = choice([[611, 582], [613, -58], [1219, 278], [-1, 280]])
+                self.enemy_spawner.spawn(Enemy(pos[0], pos[1],
+                                               PIXELS - 12, PIXELS - 8, self.player))
+
+            for bullet in self.bullets:
+                bullet.update(self.player.direction)
+                for enemy in self.enemies:
+                    if enemy.bullet_collision(bullet, self.bullets):
+                        self.timer.score += 1000
+
+            self.fireball_spawner.spawn(FireBall(-100, -100))
+            for fireball in self.fireballs:
+                fireball.update(self.player)
+                self.player.collision_fireball(fireball)
+                self.fireball_spawner.delete(10 * FPS)
+
+            if self.player.health > 0:
+                self.timer.update()
+
+            if len(str(self.timer.score)[:-3]) == 0:
+                self.difficulty = 3
+            else:
+                self.difficulty = int(str(self.timer.score)[:-3])
+
         else:
             self.timer.draw_final()
-
-        if len(str(self.timer.score)[:-3]) == 0:
-            self.difficulty = 3
-        else:
-            self.difficulty = int(str(self.timer.score)[:-3])
-
         # if self.timer.score > 1000:
             #self.difficulty += 1
 
